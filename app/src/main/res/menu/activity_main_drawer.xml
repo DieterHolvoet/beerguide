@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:id="@+id/group_main" android:checkableBehavior="single">
+        <item android:id="@+id/nav_beers" android:icon="@android:drawable/ic_menu_camera"
+            android:title="@string/nav_beers" />
+        <item android:id="@+id/nav_checkins" android:icon="@android:drawable/ic_menu_gallery"
+            android:title="@string/nav_checkins" />
+        <item android:id="@+id/nav_lists" android:icon="@android:drawable/ic_menu_slideshow"
+            android:title="@string/nav_lists" />
+        <item android:id="@+id/nav_achievements" android:icon="@android:drawable/ic_menu_manage"
+            android:title="@string/nav_achievements" />
+    </group>
+
+    <group android:id="@+id/group_settings" android:checkableBehavior="single">
+        <item android:id="@+id/nav_settings" android:icon="@android:drawable/ic_menu_info_details"
+            android:title="@string/nav_settings" />
+        <item android:id="@+id/nav_help" android:icon="@android:drawable/ic_menu_help"
+            android:title="@string/nav_help" />
+        <item android:id="@+id/nav_share" android:icon="@android:drawable/ic_menu_share"
+            android:title="@string/nav_share" />
+    </group>
+
+</menu>
