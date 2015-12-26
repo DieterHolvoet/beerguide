@@ -19,13 +19,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import be.dieterholvoet.beerapp.fragments.BeersAllFragment;
+import be.dieterholvoet.beerapp.fragments.BeersAppearanceFragment;
+import be.dieterholvoet.beerapp.fragments.BeersAromaFragment;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     DrawerLayout drawer;
     NavigationView navigationView;
-    FragmentManager fragmentManager;
-    FragmentTransaction fragmentTransaction;
     Toolbar toolbar;
     TabLayout tabLayout;
     ViewPager viewPager;
@@ -47,7 +49,7 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         // Initialize Toolbar
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.main_toolbar);
         setSupportActionBar(toolbar);
 
         // Initialize FAB
@@ -55,17 +57,17 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Intent intent = new Intent(MainActivity.this, NewBeerActivity.class);
+                MainActivity.this.startActivity(intent);
             }
         });
 
         // Initialize viewPager
-        viewPager = (ViewPager) findViewById(R.id.viewpager);
+        viewPager = (ViewPager) findViewById(R.id.main_viewpager);
         setupViewPager(viewPager);
 
         // Initialize tabLayout
-        tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout = (TabLayout) findViewById(R.id.main_tabs);
 
         // Workaround for setupWithViewPager
         tabLayout.post(new Runnable() {

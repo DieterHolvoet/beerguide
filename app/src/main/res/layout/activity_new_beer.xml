@@ -9,14 +9,14 @@
     <android.support.design.widget.AppBarLayout android:layout_height="wrap_content"
         android:layout_width="match_parent" android:theme="@style/AppTheme.AppBarOverlay">
 
-        <android.support.v7.widget.Toolbar android:id="@+id/main_toolbar"
+        <android.support.v7.widget.Toolbar android:id="@+id/new_beer_toolbar"
             android:layout_width="match_parent" android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary" app:popupTheme="@style/AppTheme.PopupOverlay" />
 
         <android.support.design.widget.TabLayout
-            android:id="@+id/main_tabs"
-            app:tabGravity="fill"
-            app:tabMode="fixed"
+            android:id="@+id/new_beer_tabs"
+            app:tabGravity="center"
+            app:tabMode="scrollable"
             android:background="?attr/colorPrimary"
             app:tabIndicatorColor="?attr/colorAccent"
             app:tabSelectedTextColor="?attr/colorAccent"
@@ -28,14 +28,9 @@
     </android.support.design.widget.AppBarLayout>
 
     <android.support.v4.view.ViewPager
-        android:id="@+id/main_viewpager"
+        android:id="@+id/new_beer_viewpager"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
     </android.support.v4.view.ViewPager>
-
-    <android.support.design.widget.FloatingActionButton android:id="@+id/fab"
-        android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end" android:layout_margin="@dimen/fab_margin"
-        android:src="@drawable/ic" />
 
 </android.support.design.widget.CoordinatorLayout>
