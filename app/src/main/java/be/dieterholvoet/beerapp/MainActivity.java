@@ -3,11 +3,9 @@ package be.dieterholvoet.beerapp;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.SearchView;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -17,11 +15,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.Toast;
 
-import be.dieterholvoet.beerapp.fragments.BeersAllFragment;
-import be.dieterholvoet.beerapp.fragments.BeersAppearanceFragment;
-import be.dieterholvoet.beerapp.fragments.BeersAromaFragment;
+import be.dieterholvoet.beerapp.fragments.BeersRecentFragment;
+import be.dieterholvoet.beerapp.fragments.BeersFavoritesFragment;
+import be.dieterholvoet.beerapp.fragments.BeersMoreFragment;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -31,6 +30,7 @@ public class MainActivity extends AppCompatActivity
     Toolbar toolbar;
     TabLayout tabLayout;
     ViewPager viewPager;
+    SearchView searchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +51,36 @@ public class MainActivity extends AppCompatActivity
         // Initialize Toolbar
         toolbar = (Toolbar) findViewById(R.id.main_toolbar);
         setSupportActionBar(toolbar);
+
+        // SearchView
+
+        // Source: http://stackoverflow.com/a/24930574
+        searchView = (SearchView) findViewById(R.id.main_search);
+        searchView.setOnClickListener(new SearchView.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switch (v.getId()) {
+                    case R.id.main_search:
+                        searchView.onActionViewExpanded();
+                        break;
+                }
+            }
+        });
+
+        // Source: http://stackoverflow.com/a/14248893
+        searchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean queryTextFocused) {
+                if (!queryTextFocused) {
+                    searchView.onActionViewCollapsed();
+                    searchView.setQuery("", false);
+                }
+            }
+        });
+
+        EditText searchEditText = (EditText) searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
+        searchEditText.setTextColor(getResources().getColor(R.color.colorPrimary));
+        searchEditText.setHintTextColor(getResources().getColor(R.color.colorPrimary));
 
         // Initialize FAB
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -109,9 +139,9 @@ public class MainActivity extends AppCompatActivity
 
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
-        adapter.addFrag(new BeersAllFragment(), "All");
-        adapter.addFrag(new BeersAppearanceFragment(), "By appearance");
-        adapter.addFrag(new BeersAromaFragment(), "By aroma");
+        adapter.addFrag(new BeersRecentFragment(), "Recent");
+        adapter.addFrag(new BeersFavoritesFragment(), "Favorites");
+        adapter.addFrag(new BeersMoreFragment(), "More");
         viewPager.setAdapter(adapter);
     }
 

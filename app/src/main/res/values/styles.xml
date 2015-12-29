@@ -13,5 +13,13 @@
     </style>
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <style name="AppTheme.SearchView" parent="Widget.AppCompat.SearchView">
+        <item name="searchIcon">@drawable/ic_plus</item>
+        <item name="goIcon">@drawable/ic_arrow_right</item>
+        <item name="closeIcon">@drawable/ic_action_close</item>
+        <item name="voiceIcon">@drawable/ic_microphone</item>
+        <item name="commitIcon">@drawable/ic_arrow_right</item>
+        <item name="queryHint">"Bier zoeken...</item>
+    </style>
 
 </resources>
