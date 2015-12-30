@@ -123,11 +123,12 @@ public class MainActivity extends AppCompatActivity
             @Override
             public boolean onSuggestionClick(int position) {
                 Cursor cursor = (Cursor) searchView.getSuggestionsAdapter().getItem(position);
-                String beerID = cursor.getString(2);
-
                 Intent intent = new Intent(MainActivity.this, NewBeerActivity.class);
                 Bundle b = new Bundle();
-                b.putString("id", beerID);
+
+                b.putString("name", cursor.getString(1));
+                b.putString("id", cursor.getString(2));
+
                 intent.putExtras(b);
                 startActivity(intent);
                 finish();

@@ -27,7 +27,7 @@ public class BreweryDB {
     private Retrofit restAdapter;
     private BreweryDBSuggestionsService searchService;
 
-    private final String[] columns = new String[]{"_id", "BEER_NAME", "BEER_ICON"};
+    private final String[] columns = new String[]{"_id", "BEER_NAME", "BREWERYDB_ID", "BEER_ICON"};
     private final String API_KEY = "63d5648e9125519e5f284d89a1e50f3e";
     private final String BASE_URL = "http://api.brewerydb.com/v2";
     private final String LOG_TAG = "DAO";

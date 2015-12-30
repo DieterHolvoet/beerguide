@@ -17,18 +17,19 @@ import be.dieterholvoet.beerapp.model.RatingElement;
 /**
  * Created by Dieter on 26/12/2015.
  */
-public class NewBeerAromaFragment extends Fragment {
+
+public class NewBeerRatingFragment extends Fragment {
     RecyclerView recycler;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        recycler = (RecyclerView) inflater.inflate(R.layout.fragment_new_beer_aroma, null);
+        recycler = (RecyclerView) inflater.inflate(R.layout.fragment_new_beer_rating, null);
 
         LinearLayoutManager llm = new LinearLayoutManager(getContext());
         llm.setOrientation(LinearLayoutManager.VERTICAL);
 
         List<RatingElement> elements = new ArrayList<>();
-        // elements.add(new RatingElement("Foam", "How much would you rate the quality of the beer foam?", R.drawable.beer_foam_m));
+        // elements.add(new RatingElement("Sweet", "Describe the sweetness of the beer.", R.drawable.beer_sweet_m));
         RatingAdapter ra = new RatingAdapter(elements);
 
         recycler.setHasFixedSize(true);

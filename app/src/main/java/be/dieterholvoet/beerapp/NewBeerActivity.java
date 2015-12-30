@@ -10,6 +10,8 @@ import be.dieterholvoet.beerapp.fragments.BeersRecentFragment;
 import be.dieterholvoet.beerapp.fragments.BeersMoreFragment;
 import be.dieterholvoet.beerapp.fragments.NewBeerAppearanceFragment;
 import be.dieterholvoet.beerapp.fragments.NewBeerAromaFragment;
+import be.dieterholvoet.beerapp.fragments.NewBeerRatingFragment;
+import be.dieterholvoet.beerapp.fragments.NewBeerTasteFragment;
 
 public class NewBeerActivity extends AppCompatActivity {
     Toolbar toolbar;
@@ -25,6 +27,7 @@ public class NewBeerActivity extends AppCompatActivity {
         Bundle b = getIntent().getExtras();
         if(b != null) {
             String value = b.getString("id");
+            setTitle(b.getString("name"));
         }
 
         // Initialize Toolbar
@@ -54,8 +57,8 @@ public class NewBeerActivity extends AppCompatActivity {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
         adapter.addFrag(new NewBeerAppearanceFragment(), "Appearance");
         adapter.addFrag(new NewBeerAromaFragment(), "Aroma");
-        adapter.addFrag(new BeersMoreFragment(), "Taste");
-        adapter.addFrag(new BeersMoreFragment(), "Rating");
+        adapter.addFrag(new NewBeerTasteFragment(), "Taste");
+        adapter.addFrag(new NewBeerRatingFragment(), "Rating");
         viewPager.setAdapter(adapter);
     }
 }

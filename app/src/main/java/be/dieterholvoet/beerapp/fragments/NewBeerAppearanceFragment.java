@@ -30,7 +30,8 @@ public class NewBeerAppearanceFragment extends Fragment {
 
         List<RatingElement> elements = new ArrayList<>();
         elements.add(new RatingElement("Foam", "How much would you rate the quality of the beer foam?", R.drawable.beer_foam_m));
-        elements.add(new RatingElement("Color", "Describe the color of the beer, ranging from very light to very dark.", R.drawable.beer_color_m));
+        elements.add(new RatingElement("Color", "Describe the color of the beer, ranging from very light to very dark.", R.drawable.beer_clearness_m));
+        elements.add(new RatingElement("Clearness", "Describe the clearness of the beer, ranging from very clear to cloudy.", R.drawable.beer_clearness_2_m));
         RatingAdapter ra = new RatingAdapter(elements);
 
         recycler.setHasFixedSize(true);
