@@ -29,7 +29,7 @@ public class SearchBeerResultsAdapter extends SimpleCursorAdapter {
         ImageView imageView = (ImageView)view.findViewById(R.id.beer_icon);
         TextView textView = (TextView)view.findViewById(R.id.beer_name);
 
-        // Picasso.with(context).load(cursor.getString(2)).into(imageView);
         textView.setText(cursor.getString(1));
+        // Picasso.with(context).load(cursor.getString(2)).into(imageView);
     }
 }

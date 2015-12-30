@@ -3,8 +3,8 @@ package be.dieterholvoet.beerapp.rest;
 import java.util.Map;
 
 import retrofit.Call;
-import retrofit.Callback;
 import retrofit.http.GET;
+import retrofit.http.Path;
 import retrofit.http.QueryMap;
 
 /**
@@ -12,6 +12,9 @@ import retrofit.http.QueryMap;
  */
 
 public interface BreweryDBSuggestionsService {
-    @GET("/v2/search/")
-    Call<BreweryDBResponse> searchBeers(@QueryMap Map<String, String> options);
+    @GET("v2/search/")
+    Call<SearchResponse> searchBeers(@QueryMap Map<String, String> options);
+
+    @GET("v2/beer/{beerID}")
+    Call<BeerResponse> getBeerByID(@Path("beerID") String beerID, @QueryMap Map<String, String> options);
 }

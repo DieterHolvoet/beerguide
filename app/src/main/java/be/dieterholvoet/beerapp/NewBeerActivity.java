@@ -9,6 +9,7 @@ import android.support.v7.widget.Toolbar;
 import be.dieterholvoet.beerapp.fragments.BeersRecentFragment;
 import be.dieterholvoet.beerapp.fragments.BeersMoreFragment;
 import be.dieterholvoet.beerapp.fragments.NewBeerAppearanceFragment;
+import be.dieterholvoet.beerapp.fragments.NewBeerAromaFragment;
 
 public class NewBeerActivity extends AppCompatActivity {
     Toolbar toolbar;
@@ -19,6 +20,12 @@ public class NewBeerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_beer);
+
+        // Get intent
+        Bundle b = getIntent().getExtras();
+        if(b != null) {
+            String value = b.getString("id");
+        }
 
         // Initialize Toolbar
         toolbar = (Toolbar) findViewById(R.id.new_beer_toolbar);
@@ -45,8 +52,8 @@ public class NewBeerActivity extends AppCompatActivity {
 
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
-        adapter.addFrag(new BeersRecentFragment(), "Appearance");
-        adapter.addFrag(new NewBeerAppearanceFragment(), "Aroma");
+        adapter.addFrag(new NewBeerAppearanceFragment(), "Appearance");
+        adapter.addFrag(new NewBeerAromaFragment(), "Aroma");
         adapter.addFrag(new BeersMoreFragment(), "Taste");
         adapter.addFrag(new BeersMoreFragment(), "Rating");
         viewPager.setAdapter(adapter);
