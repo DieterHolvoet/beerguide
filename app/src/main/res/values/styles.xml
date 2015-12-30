@@ -19,7 +19,14 @@
         <item name="closeIcon">@drawable/ic_action_close</item>
         <item name="voiceIcon">@drawable/ic_microphone</item>
         <item name="commitIcon">@drawable/ic_arrow_right</item>
-        <item name="queryHint">"Bier zoeken...</item>
+        <item name="queryHint">@string/main_search_hint</item>
+        <item name="android:iconifiedByDefault">true</item>
+        <item name="android:suggestionRowLayout">@style/SuggestionRowLayout</item>
+        <item name="android:dropDownItemStyle">@style/SuggestionRowLayout</item>
+    </style>
+    <style name="SuggestionRowLayout" parent="Widget.AppCompat.DropDownItem.Spinner">
+        <item name="android:textColor">@color/colorPrimary</item>
+        <item name="android:background">@color/white</item>
     </style>
 
 </resources>
