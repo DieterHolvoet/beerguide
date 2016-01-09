@@ -9,6 +9,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.ArrayList;
+
 import be.dieterholvoet.beerapp.model.Beer;
 
 /**
@@ -17,16 +19,20 @@ import be.dieterholvoet.beerapp.model.Beer;
 
 public class DBHandler extends SQLiteOpenHelper {
 
+    private static SQLiteDatabase DATABASE;
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "beers.db";
 
     private static final String TEXT_TYPE = " TEXT";
     private static final String INTEGER_TYPE = " INTEGER";
+    private static final String BOOLEAN_TYPE = " BOOLEAN";
+    private static final String DATETIME_TYPE = " DATETIME";
     private static final String COMMA_SEP = ",";
 
     private static final String SQL_CREATE_ENTRIES =
             "CREATE TABLE " + DBContract.BeerEntry.TABLE_NAME + "("
-            + DBContract.BeerEntry._ID + " INTEGER PRIMARY KEY," + COMMA_SEP
+            + DBContract.BeerEntry._ID + INTEGER_TYPE + " PRIMARY KEY," + COMMA_SEP
+            + DBContract.BeerEntry.COLUMN_NAME_BDB_ID + INTEGER_TYPE + COMMA_SEP
             + DBContract.BeerEntry.COLUMN_NAME_BITTERNESS + INTEGER_TYPE + COMMA_SEP
             + DBContract.BeerEntry.COLUMN_NAME_CLARITY + INTEGER_TYPE + COMMA_SEP
             + DBContract.BeerEntry.COLUMN_NAME_COLOR + INTEGER_TYPE + COMMA_SEP
@@ -36,6 +42,8 @@ public class DBHandler extends SQLiteOpenHelper {
             + DBContract.BeerEntry.COLUMN_NAME_RATING + INTEGER_TYPE + COMMA_SEP
             + DBContract.BeerEntry.COLUMN_NAME_SOURNESS + INTEGER_TYPE + COMMA_SEP
             + DBContract.BeerEntry.COLUMN_NAME_SWEETNESS + INTEGER_TYPE + COMMA_SEP
+            + DBContract.BeerEntry.COLUMN_NAME_DATE_ADDED + DATETIME_TYPE + COMMA_SEP
+            + DBContract.BeerEntry.COLUMN_NAME_FAVORITE + BOOLEAN_TYPE
             + ")";
 
     private static final String SQL_DELETE_ENTRIES =
@@ -47,6 +55,7 @@ public class DBHandler extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        this.DATABASE = db;
         db.execSQL(SQL_CREATE_ENTRIES);
     }
 
@@ -61,55 +70,7 @@ public class DBHandler extends SQLiteOpenHelper {
         onUpgrade(db, oldVersion, newVersion);
     }
 
-    public void addBeer(Beer beer) {
-        ContentValues values = new ContentValues();
-        values.put(DBContract.BeerEntry.COLUMN_NAME_NAME, beer.getName());
-
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        db.insert(DBContract.BeerEntry.TABLE_NAME, null, values);
-        db.close();
-    }
-
-    public Beer findProduct(String productname) {
-        String query = "Select * FROM " + DBContract.BeerEntry.TABLE_NAME + " WHERE " +
-                DBContract.BeerEntry.COLUMN_NAME_NAME + " =  \"" + productname + "\"";
-
-        SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery(query, null);
-        Beer beer = new Beer();
-
-        if (cursor.moveToFirst()) {
-            cursor.moveToFirst();
-            beer.set_id(Integer.parseInt(cursor.getString(0)));
-            beer.setName(cursor.getString(1));
-            cursor.close();
-
-        } else {
-            beer = null;
-        }
-
-        db.close();
-        return beer;
-    }
-
-    public boolean deleteBeer(String productname) {
-        boolean result = false;
-        String query = "Select * FROM " + DBContract.BeerEntry.TABLE_NAME + " WHERE " +
-                DBContract.BeerEntry.COLUMN_NAME_NAME + " =  \"" + productname + "\"";
-
-        SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery(query, null);
-        Beer beer = new Beer();
-
-        if (cursor.moveToFirst()) {
-            beer.set_id(Integer.parseInt(cursor.getString(0)));
-            db.delete(DBContract.BeerEntry.TABLE_NAME, DBContract.BeerEntry.COLUMN_NAME_ID + " = ?",
-                    new String[] { String.valueOf(beer.get_id()) });
-            cursor.close();
-            result = true;
-        }
-        db.close();
-        return result;
+    protected static SQLiteDatabase getDatabase() {
+        return DBHandler.DATABASE;
     }
 }

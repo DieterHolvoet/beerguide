@@ -22,8 +22,8 @@ public class RatingCardView extends android.support.v7.widget.CardView {
     public RatingCardView(Context context) {
         super(context);
 
-        View.inflate(context, R.layout.rating_card_view, this);
-        banner = (ImageView) findViewById(R.id.rating_card_banner);
+        View.inflate(context, R.layout.item_rating_card, this);
+        banner = (ImageView) findViewById(R.id.item_beer_img);
         title = (TextView) findViewById(R.id.rating_card_title);
         description = (TextView) findViewById(R.id.rating_card_description);
         rating = (RatingBar) findViewById(R.id.rating_card_rating);

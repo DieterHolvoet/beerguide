@@ -6,17 +6,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 
-import be.dieterholvoet.beerapp.fragments.BeersRecentFragment;
-import be.dieterholvoet.beerapp.fragments.BeersMoreFragment;
+import be.dieterholvoet.beerapp.adapters.ViewPagerAdapter;
 import be.dieterholvoet.beerapp.fragments.NewBeerAppearanceFragment;
 import be.dieterholvoet.beerapp.fragments.NewBeerAromaFragment;
 import be.dieterholvoet.beerapp.fragments.NewBeerRatingFragment;
 import be.dieterholvoet.beerapp.fragments.NewBeerTasteFragment;
+import be.dieterholvoet.beerapp.model.Beer;
 
 public class NewBeerActivity extends AppCompatActivity {
-    Toolbar toolbar;
-    TabLayout tabLayout;
-    ViewPager viewPager;
+    private Toolbar toolbar;
+    private TabLayout tabLayout;
+    private ViewPager viewPager;
+    private Beer beer = new Beer();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,8 +27,9 @@ public class NewBeerActivity extends AppCompatActivity {
         // Get intent
         Bundle b = getIntent().getExtras();
         if(b != null) {
-            String value = b.getString("id");
-            setTitle(b.getString("name"));
+            beer.set_id(b.getInt("id"));
+            beer.setName(b.getString("name"));
+            setTitle(beer.getName());
         }
 
         // Initialize Toolbar
@@ -60,5 +62,13 @@ public class NewBeerActivity extends AppCompatActivity {
         adapter.addFrag(new NewBeerTasteFragment(), "Taste");
         adapter.addFrag(new NewBeerRatingFragment(), "Rating");
         viewPager.setAdapter(adapter);
+    }
+
+    public Beer getBeer() {
+        return beer;
+    }
+
+    public void setBeer(Beer beer) {
+        this.beer = beer;
     }
 }

@@ -1,21 +1,25 @@
 package be.dieterholvoet.beerapp.model;
 
+import android.provider.BaseColumns;
+
+import java.sql.Date;
+
 /**
  * Created by Dieter on 26/12/2015.
  */
 public class Beer {
     private int _id;
-    private String name;
-    private int foam;
-    private int color;
-    private int clarity;
-    private int sweetness;
-    private int sourness;
-    private int bitterness;
-    private int fullness;
-    private int rating;
+    private BreweryDBBeer bdb;
+    private BeerRating rating;
+    private Date dateAdded;
+    private boolean favorite;
 
-    public Beer() {}
+    public Beer(BreweryDBBeer bdb, BeerRating rating, Date dateAdded, boolean favorite) {
+        this.bdb = bdb;
+        this.dateAdded = dateAdded;
+        this.favorite = favorite;
+        this.rating = rating;
+    }
 
     public int get_id() {
         return _id;
@@ -25,75 +29,52 @@ public class Beer {
         this._id = _id;
     }
 
-    public int getBitterness() {
-        return bitterness;
+    public BreweryDBBeer getBdb() {
+        return bdb;
     }
 
-    public void setBitterness(int bitterness) {
-        this.bitterness = bitterness;
+    public void setBdb(BreweryDBBeer bdb) {
+        this.bdb = bdb;
     }
 
-    public int getClarity() {
-        return clarity;
+    public Date getDateAdded() {
+        return dateAdded;
     }
 
-    public void setClarity(int clarity) {
-        this.clarity = clarity;
+    public void setDateAdded(Date dateAdded) {
+        this.dateAdded = dateAdded;
     }
 
-    public int getColor() {
-        return color;
+    public boolean isFavorite() {
+        return favorite;
     }
 
-    public void setColor(int color) {
-        this.color = color;
+    public void setFavorite(boolean favorite) {
+        this.favorite = favorite;
     }
 
-    public int getFoam() {
-        return foam;
-    }
-
-    public void setFoam(int foam) {
-        this.foam = foam;
-    }
-
-    public int getFullness() {
-        return fullness;
-    }
-
-    public void setFullness(int fullness) {
-        this.fullness = fullness;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getRating() {
+    public BeerRating getRating() {
         return rating;
     }
 
-    public void setRating(int rating) {
+    public void setRating(BeerRating rating) {
         this.rating = rating;
     }
 
-    public int getSourness() {
-        return sourness;
-    }
+    public static abstract class Contract implements BaseColumns {
+        public static final String TABLE_NAME = "beers";
+        public static final String COLUMN_NAME_ID = "id";
+        public static final String COLUMN_NAME_BDB_ID = "bdb_id";
+        public static final String COLUMN_NAME_RATING_ID = "rating_id";
+        public static final String COLUMN_NAME_DATE_ADDED = "date_added";
+        public static final String COLUMN_NAME_FAVORITE = "favorite";
 
-    public void setSourness(int sourness) {
-        this.sourness = sourness;
-    }
-
-    public int getSweetness() {
-        return sweetness;
-    }
-
-    public void setSweetness(int sweetness) {
-        this.sweetness = sweetness;
+        public static final String[] TABLE_COLUMNS = {
+                COLUMN_NAME_ID,
+                COLUMN_NAME_BDB_ID,
+                COLUMN_NAME_RATING_ID,
+                COLUMN_NAME_DATE_ADDED,
+                COLUMN_NAME_FAVORITE
+        };
     }
 }

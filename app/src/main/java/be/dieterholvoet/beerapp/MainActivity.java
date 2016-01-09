@@ -21,11 +21,13 @@ import android.widget.EditText;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
+import be.dieterholvoet.beerapp.adapters.ViewPagerAdapter;
+import be.dieterholvoet.beerapp.db.DB;
 import be.dieterholvoet.beerapp.fragments.BeersRecentFragment;
 import be.dieterholvoet.beerapp.fragments.BeersFavoritesFragment;
 import be.dieterholvoet.beerapp.fragments.BeersMoreFragment;
 import be.dieterholvoet.beerapp.rest.BreweryDB;
-import be.dieterholvoet.beerapp.rest.SearchBeerResultsAdapter;
+import be.dieterholvoet.beerapp.adapters.SearchBeerResultsAdapter;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -51,6 +53,9 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Initialize database
+        DB.setInstance(this);
+
         // Initialize Retrofit Builder & search service
         dao = new BreweryDB();
 
@@ -71,7 +76,7 @@ public class MainActivity extends AppCompatActivity
 
         // SearchView
         searchView = (SearchView) findViewById(R.id.main_search);
-        mSearchViewAdapter = new SearchBeerResultsAdapter(this, R.layout.search_suggestion_item, null, dao.getColumns(), null, -1000);
+        mSearchViewAdapter = new SearchBeerResultsAdapter(this, R.layout.item_search_suggestion, null, dao.getColumns(), null, -1000);
         searchView.setSuggestionsAdapter(mSearchViewAdapter);
 
         // Source: http://stackoverflow.com/a/24930574
@@ -127,7 +132,7 @@ public class MainActivity extends AppCompatActivity
                 Bundle b = new Bundle();
 
                 b.putString("name", cursor.getString(1));
-                b.putString("id", cursor.getString(2));
+                b.putInt("id", cursor.getInt(2));
 
                 intent.putExtras(b);
                 startActivity(intent);

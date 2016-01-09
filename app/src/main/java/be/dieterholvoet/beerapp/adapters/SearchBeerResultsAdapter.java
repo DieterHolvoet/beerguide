@@ -1,4 +1,4 @@
-package be.dieterholvoet.beerapp.rest;
+package be.dieterholvoet.beerapp.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -6,8 +6,6 @@ import android.support.v4.widget.SimpleCursorAdapter;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import com.squareup.picasso.Picasso;
 
 import be.dieterholvoet.beerapp.R;
 

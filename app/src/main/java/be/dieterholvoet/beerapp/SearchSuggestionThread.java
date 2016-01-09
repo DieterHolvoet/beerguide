@@ -38,7 +38,7 @@ class SearchSuggestionThread extends AsyncTask<Void, Void, Void> {
 
     @Override
     protected void onPostExecute(Void aVoid) {
-        Log.e("thread", "onPostExecute");
+        Log.        e("thread", "onPostExecute");
         this.searchViewAdapter.changeCursor(cursor);
     }
 }

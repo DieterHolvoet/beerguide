@@ -1,18 +1,20 @@
-package be.dieterholvoet.beerapp.rest;
+package be.dieterholvoet.beerapp.model;
+
+import be.dieterholvoet.beerapp.model.BreweryDBBeer;
 
 /**
  * Created by Dieter on 30/12/2015.
  */
-public class BeerResponse {
+public class BreweryDBResponse {
     private String status;
     private String message;
-    private BreweryDBResult data;
+    private BreweryDBBeer data;
 
-    public BreweryDBResult getData() {
+    public BreweryDBBeer getData() {
         return data;
     }
 
-    public void setData(BreweryDBResult data) {
+    public void setData(BreweryDBBeer data) {
         this.data = data;
     }
 

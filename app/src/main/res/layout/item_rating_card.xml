@@ -22,12 +22,12 @@
                 android:layout_height="wrap_content">
 
                 <ImageView
-                    android:id="@+id/rating_card_banner"
+                    android:id="@+id/item_beer_img"
                     android:layout_width="fill_parent"
-                    android:layout_height="240dp"
+                    android:layout_height="190dp"
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentRight="true"
-                    android:scaleType="fitXY"
+                    android:scaleType="centerCrop"
                     android:src="@drawable/beer_foam_m"
                     android:contentDescription="Foam" />
 
@@ -39,7 +39,7 @@
                     android:textColor="@color/white"
                     android:textSize="34sp"
                     android:padding="14dp"
-                    android:layout_alignBottom="@+id/rating_card_banner"
+                    android:layout_alignBottom="@+id/item_beer_img"
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentStart="true" />
 
@@ -64,7 +64,7 @@
                     android:id="@+id/rating_card_rating"
                     android:numStars="5"
                     android:rating="2.5"
-                    android:stepSize="0.01"
+                    android:stepSize="1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center"

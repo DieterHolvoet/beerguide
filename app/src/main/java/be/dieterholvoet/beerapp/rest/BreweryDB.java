@@ -3,9 +3,6 @@ package be.dieterholvoet.beerapp.rest;
 import android.database.MatrixCursor;
 import android.util.Log;
 
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.logging.HttpLoggingInterceptor;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -13,6 +10,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import be.dieterholvoet.beerapp.model.BreweryDBBeer;
+import be.dieterholvoet.beerapp.model.BreweryDBResponse;
+import be.dieterholvoet.beerapp.model.SearchResponse;
 import retrofit.Call;
 import retrofit.Callback;
 import retrofit.GsonConverterFactory;
@@ -31,30 +31,12 @@ public class BreweryDB {
     private final String API_KEY = "63d5648e9125519e5f284d89a1e50f3e";
     private final String BASE_URL = "http://api.brewerydb.com/v2";
     private final String LOG_TAG = "DAO";
-    private final boolean DEBUGGING = true;
 
     public BreweryDB() {
-
-
-        if(DEBUGGING) {
-            // Source: http://stackoverflow.com/a/33328524
-            HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
-            logging.setLevel(HttpLoggingInterceptor.Level.BODY);
-            OkHttpClient httpClient = new OkHttpClient();
-            httpClient.interceptors().add(logging);
-
-            restAdapter = new Retrofit.Builder()
-                    .baseUrl(BASE_URL)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .client(httpClient)
-                    .build();
-
-        } else {
-            restAdapter = new Retrofit.Builder()
-                    .baseUrl(BASE_URL)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
-        }
+        restAdapter = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
 
         searchService = restAdapter.create(BreweryDBSuggestionsService.class);
     }
@@ -63,8 +45,8 @@ public class BreweryDB {
         return columns;
     }
 
-    public List<BreweryDBResult> searchBeers(String query) {
-        final List<BreweryDBResult>[] results = new List[1];
+    public List<BreweryDBBeer> searchBeers(String query) {
+        final List<BreweryDBBeer>[] results = new List[1];
         final BreweryDB context = this;
 
         HashMap queryMap = new HashMap();
@@ -82,8 +64,8 @@ public class BreweryDB {
                         Log.e(LOG_TAG, response.message());
 
                     } else {
-                        List<BreweryDBResult> BreweryDBResults = response.body().getData();
-                        results[0] = BreweryDBResults;
+                        List<BreweryDBBeer> BreweryDBBeers = response.body().getData();
+                        results[0] = BreweryDBBeers;
                     }
 
 
@@ -111,9 +93,8 @@ public class BreweryDB {
         return results[0];
     }
 
-    public List<BreweryDBResult> searchBeersSynchronous(String query) {
-        final List<BreweryDBResult>[] results = new List[1];
-        final BreweryDB context = this;
+    public ArrayList<BreweryDBBeer> searchBeersSynchronous(String query) {
+        ArrayList<BreweryDBBeer> results = new ArrayList<>();
 
         HashMap queryMap = new HashMap();
         queryMap.put("key", API_KEY);
@@ -121,51 +102,23 @@ public class BreweryDB {
         queryMap.put("q", query);
 
         Call<SearchResponse> call = searchService.searchBeers(queryMap);
-        Response<SearchResponse> response = null;
-        List<BreweryDBResult> data = null;
-
-        try {
-            response = call.execute();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        if (response.isSuccess()) {
-            data = response.body().getData();
-
-            if (data == null) {
-                Log.e(LOG_TAG, "Result is null");
-                Log.e(LOG_TAG, response.message());
-
-            } else {
-                Log.e(LOG_TAG, "Result is not null: " + response.body().getData().toString());
-            }
-
-        } else {
-            try {
-                Log.e(LOG_TAG, response.errorBody().string());
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        ArrayList<BreweryDBBeer> data = (ArrayList<BreweryDBBeer>) executeAndTestResponse(call);
 
         return data;
     }
 
-    public BreweryDBResult getBeerByID(String beerID) {
-        final BreweryDBResult[] result = new BreweryDBResult[1];
+    public BreweryDBBeer getBeerByID(String beerID) {
+        final BreweryDBBeer[] result = new BreweryDBBeer[1];
         HashMap queryMap = new HashMap();
         queryMap.put("key", API_KEY);
 
         Log.e(LOG_TAG, "Getting beer by ID " + beerID);
 
-        Call<BeerResponse> call = searchService.getBeerByID(beerID, queryMap);
-        call.enqueue(new Callback<BeerResponse>() {
+        Call<BreweryDBResponse> call = searchService.getBeerByID(beerID, queryMap);
+        call.enqueue(new Callback<BreweryDBResponse>() {
 
             @Override
-            public void onResponse(Response<BeerResponse> response, Retrofit retrofit) {
+            public void onResponse(Response<BreweryDBResponse> response, Retrofit retrofit) {
                 Log.e(LOG_TAG, "Got response");
                 Log.e(LOG_TAG, response.message());
 
@@ -204,15 +157,18 @@ public class BreweryDB {
         return result[0];
     }
 
-    public BreweryDBResult getBeerByIDSynchronous(String beerID) {
+    public BreweryDBBeer getBeerByIDSynchronous(String beerID) {
         HashMap queryMap = new HashMap();
         queryMap.put("key", API_KEY);
 
-        Log.e(LOG_TAG, "Getting beer by ID " + beerID);
+        Call<BreweryDBResponse> call = searchService.getBeerByID(beerID, queryMap);
+        BreweryDBBeer data = (BreweryDBBeer) executeAndTestResponse(call);
 
-        Call<BeerResponse> call = searchService.getBeerByID(beerID, queryMap);
-        Response<BeerResponse> response = null;
-        BreweryDBResult data = null;
+        return data;
+    }
+
+    private Object executeAndTestResponse(Call call) {
+        Response response = null;
 
         try {
             response = call.execute();
@@ -221,45 +177,46 @@ public class BreweryDB {
             e.printStackTrace();
         }
 
-        if (response.isSuccess()) {
-            data = response.body().getData();
-
-            if (data == null) {
-                Log.e(LOG_TAG, "Result is null");
-                Log.e(LOG_TAG, response.message());
-
-            } else {
-                Log.e(LOG_TAG, "Result is not null: " + response.body().getData().toString());
-            }
-
+        if(response == null) {
+            Log.e(LOG_TAG, "Response is null");
 
         } else {
-            try {
-                Log.e(LOG_TAG, response.errorBody().string());
+            if (response.isSuccess()) {
+                if (response.body() == null) {
+                    Log.e(LOG_TAG, "Result is null");
+                    Log.e(LOG_TAG, response.message());
 
-            } catch (IOException e) {
-                e.printStackTrace();
+                } else {
+                    return response.body();
+                }
+
+            } else {
+                try {
+                    Log.e(LOG_TAG, response.errorBody().string());
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
-        return data;
+        return null;
     }
 
-
-    public MatrixCursor convertToCursor(List<BreweryDBResult> BreweryDBResults) {
+    public MatrixCursor convertToCursor(List<BreweryDBBeer> BreweryDBBeers) {
         MatrixCursor cursor = new MatrixCursor(columns);
 
-        if(BreweryDBResults != null) {
-            for(int i = 0; i < BreweryDBResults.size(); i++) {
-                BreweryDBResult BreweryDBResult = BreweryDBResults.get(i);
+        if(BreweryDBBeers != null) {
+            for(int i = 0; i < BreweryDBBeers.size(); i++) {
+                BreweryDBBeer BreweryDBBeer = BreweryDBBeers.get(i);
                 ArrayList<Object> row = new ArrayList<>();
 
                 row.add(i);
-                row.add(BreweryDBResult.getName());
-                row.add(BreweryDBResult.getId());
+                row.add(BreweryDBBeer.getName());
+                row.add(BreweryDBBeer.getId());
 
-                if(BreweryDBResult.getLabels() != null) {
-                    row.add(BreweryDBResult.getLabels().getIcon());
+                if(BreweryDBBeer.getLabels() != null) {
+                    row.add(BreweryDBBeer.getLabels().getIcon());
                 } else {
                     row.add(null);
                 }

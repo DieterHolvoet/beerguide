@@ -1,12 +1,21 @@
-package be.dieterholvoet.beerapp.rest;
+package be.dieterholvoet.beerapp.model;
 
 /**
  * Created by Dieter on 29/12/2015.
  */
-public class Label {
+public class BreweryDBLabel {
+    private int _id;
     private String medium;
     private String large;
     private String icon;
+
+    public int getID() {
+        return _id;
+    }
+
+    public void setID(int _id) {
+        this._id = _id;
+    }
 
     public String getIcon() {
         return icon;

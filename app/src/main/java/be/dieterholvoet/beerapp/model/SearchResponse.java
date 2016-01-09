@@ -1,6 +1,8 @@
-package be.dieterholvoet.beerapp.rest;
+package be.dieterholvoet.beerapp.model;
 
 import java.util.List;
+
+import be.dieterholvoet.beerapp.model.BreweryDBBeer;
 
 /**
  * Created by Dieter on 29/12/2015.
@@ -9,7 +11,7 @@ import java.util.List;
 public class SearchResponse {
     private String status;
     private String message;
-    private List<BreweryDBResult> data;
+    private List<BreweryDBBeer> data;
 
     public SearchResponse() {
     }
@@ -22,11 +24,11 @@ public class SearchResponse {
         this.message = message;
     }
 
-    public List<BreweryDBResult> getData() {
+    public List<BreweryDBBeer> getData() {
         return data;
     }
 
-    public void setData(List<BreweryDBResult> data) {
+    public void setData(List<BreweryDBBeer> data) {
         this.data = data;
     }
 
