@@ -114,6 +114,13 @@ public class Beer extends SugarRecord {
                 this.getBdb().getStyle().save();
             }
 
+            if(this.getBdb().getLabels() == null) {
+                Log.e("BEER", "Label collection of beer is null.");
+
+            } else {
+                this.getBdb().getLabels().save();
+            }
+
             this.getBdb().save();
         }
 

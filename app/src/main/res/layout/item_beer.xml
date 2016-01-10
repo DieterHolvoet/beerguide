@@ -28,7 +28,11 @@
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:orientation="vertical"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
+            android:layout_height="fill_parent"
+            android:paddingLeft="13dp"
+            android:paddingTop="10dp"
+            android:paddingRight="13dp"
+            android:paddingBottom="10dp">
 
             <TextView
                 android:id="@+id/item_beer_name"
@@ -36,54 +40,28 @@
                 android:layout_height="wrap_content"
                 android:text="Name of the beer"
                 android:textColor="@color/black"
-                android:textSize="22sp"
+                android:textSize="23sp"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
-                android:paddingLeft="13dp"
-                android:paddingTop="9dp"
-                android:paddingRight="13dp"
-                android:paddingBottom="10dp"
                 android:layout_marginLeft="0dp"
                 android:layout_alignParentTop="true"
-                android:layout_marginTop="0dp" />
+                android:layout_marginTop="0dp"
+                android:paddingBottom="5dp" />
 
-            <TableLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:paddingLeft="13dp"
-                android:paddingRight="13dp"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="Category"
+                android:id="@+id/item_beer_category_text"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:scrollHorizontally="true"
+                android:textSize="16sp"
+                android:layout_weight="1"
                 android:layout_below="@+id/item_beer_name"
                 android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true">
-
-                <TableRow
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingBottom="5dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="fill_parent"
-                        android:textAppearance="?android:attr/textAppearanceMedium"
-                        android:text="Category:"
-                        android:id="@+id/item_beer_category_label"
-                        android:paddingRight="10dp"
-                        android:textSize="15dp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="fill_parent"
-                        android:layout_height="wrap_content"
-                        android:textAppearance="?android:attr/textAppearanceMedium"
-                        android:text="####"
-                        android:id="@+id/item_beer_category_text"
-                        android:ellipsize="end"
-                        android:maxLines="2"
-                        android:scrollHorizontally="true"
-                        android:textSize="15dp"
-                        android:layout_weight="1" />
-                </TableRow>
-            </TableLayout>
+                android:layout_alignParentStart="true" />
 
             <RatingBar
                 android:layout_width="wrap_content"
@@ -97,7 +75,7 @@
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentRight="true"
                 android:layout_alignParentEnd="true"
-                android:layout_margin="13dp"
+                android:layout_margin="0dp"
                 android:indeterminateOnly="false"
                 android:isIndicator="true" />
 

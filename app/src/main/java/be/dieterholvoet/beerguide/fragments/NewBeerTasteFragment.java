@@ -2,6 +2,7 @@ package be.dieterholvoet.beerguide.fragments;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -35,8 +36,17 @@ public class NewBeerTasteFragment extends Fragment {
         this.rating = beer.getRating();
         this.recycler = (RecyclerView) inflater.inflate(R.layout.fragment_new_beer_taste, null);
 
-        LinearLayoutManager llm = new LinearLayoutManager(getContext());
-        llm.setOrientation(LinearLayoutManager.VERTICAL);
+        switch(getResources().getConfiguration().orientation) {
+            // Portrait
+            case 1:
+                recycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+                break;
+
+            // Landscape
+            case 2:
+                recycler.setLayoutManager(new GridLayoutManager(getContext(), 2));
+                break;
+        }
 
         List<RatingElement> elements = new ArrayList<>();
         elements.add(new RatingElement("Sweet", "Describe the sweetness of the beer.", R.drawable.beer_sweet_m, rating.getSweetness()));
@@ -47,7 +57,6 @@ public class NewBeerTasteFragment extends Fragment {
 
         recycler.setHasFixedSize(true);
         recycler.setAdapter(ra);
-        recycler.setLayoutManager(llm);
 
         return recycler;
     }

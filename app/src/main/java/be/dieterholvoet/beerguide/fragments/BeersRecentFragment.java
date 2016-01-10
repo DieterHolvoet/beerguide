@@ -5,31 +5,30 @@ package be.dieterholvoet.beerguide.fragments;
  */
 
 import android.app.ProgressDialog;
-import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
-import android.widget.GridLayout;
-import android.widget.RatingBar;
 
 import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
-import java.util.List;
 
+import be.dieterholvoet.beerguide.BeerCardCallback;
+import be.dieterholvoet.beerguide.ItemOffsetDecoration;
 import be.dieterholvoet.beerguide.R;
+import be.dieterholvoet.beerguide.SpacesItemDecoration;
 import be.dieterholvoet.beerguide.adapters.BeerListAdapter;
 import be.dieterholvoet.beerguide.bus.EventBus;
 import be.dieterholvoet.beerguide.bus.RecentBeerListTaskEvent;
-import be.dieterholvoet.beerguide.db.DB;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.tasks.RecentBeerListTask;
 
@@ -43,13 +42,20 @@ public class BeersRecentFragment extends Fragment {
         EventBus.getInstance().register(this);
         recycler = (RecyclerView) inflater.inflate(R.layout.fragment_beers_recent, null);
 
-        LinearLayoutManager llm = new LinearLayoutManager(getContext());
-        llm.setOrientation(LinearLayoutManager.VERTICAL);
-        BeerListAdapter adapter = new BeerListAdapter(new ArrayList(), getActivity());
+        switch(getResources().getConfiguration().orientation) {
+            // Portrait
+            case 1:
+                recycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+                break;
+
+            // Landscape
+            case 2:
+                recycler.setLayoutManager(new GridLayoutManager(getContext(), 2));
+                break;
+        }
 
         recycler.setHasFixedSize(true);
-        recycler.setAdapter(adapter);
-        recycler.setLayoutManager(llm);
+        recycler.setAdapter(new BeerListAdapter(new ArrayList(), getActivity()));
 
         progress = ProgressDialog.show(getActivity(), "", "Loading beers...", true);
 
@@ -68,6 +74,9 @@ public class BeersRecentFragment extends Fragment {
             Log.e("BEER", "Rating: " + event.getBeers().get(0).getRating().getRating());
             Log.e("BEER", "Category: " + event.getBeers().get(0).getBdb().getStyle().getCategory().getName());
         }
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new BeerCardCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT, recycler));
+        itemTouchHelper.attachToRecyclerView(recycler);
     }
 
     @Override

@@ -13,6 +13,8 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.RelativeLayout.LayoutParams;
 
+import com.squareup.picasso.Picasso;
+
 import java.util.List;
 
 import be.dieterholvoet.beerguide.R;
@@ -40,9 +42,9 @@ public class BeerListAdapter extends RecyclerView.Adapter<BeerListAdapter.BeerLi
     }
 
     @Override
-    public void onBindViewHolder(BeerListViewHolder ratingViewHolder, int i) {
+    public void onBindViewHolder(final BeerListViewHolder ratingViewHolder, int i) {
         Beer beer = beers.get(i);
-        BreweryDBBeer bdb;
+        final BreweryDBBeer bdb;
         BreweryDBCategory category;
 
         if(beer.getBdb() == null) {
@@ -67,12 +69,39 @@ public class BeerListAdapter extends RecyclerView.Adapter<BeerListAdapter.BeerLi
         ratingViewHolder.name.setText(name);
         ratingViewHolder.category.setText(cat);
         ratingViewHolder.rating.setRating(rating);
-        // ratingViewHolder.img.setImageResource();
+
+        if(bdb.getLabels()!= null) {
+            Picasso.with(activity)
+                    .load(bdb.getLabels().getMedium())
+                    .placeholder(R.drawable.beer_placeholder)
+                    .resize(200, 267)
+                    .centerCrop()
+                    .into(ratingViewHolder.img);
+        } else {
+
+            Picasso.with(activity)
+                    .load(R.drawable.beer_placeholder)
+                    .resize(200, 267)
+                    .centerCrop()
+                    .into(ratingViewHolder.img);
+        }
+
 
         Drawable starDrawable = ContextCompat.getDrawable(activity, R.drawable.star_full);
         LayoutParams params = (LayoutParams) ratingViewHolder.rating.getLayoutParams();
         params.height = starDrawable.getMinimumHeight();
         ratingViewHolder.rating.setLayoutParams(params);
+
+        ratingViewHolder.name.post(new Runnable() {
+            @Override
+            public void run() {
+                if (ratingViewHolder.name.getLineCount() == 2 && ratingViewHolder.category.getLineCount() == 2) {
+                    ratingViewHolder.category.setMaxLines(1);
+                }
+            }
+        });
+
+
     }
 
     @Override
@@ -113,6 +142,29 @@ public class BeerListAdapter extends RecyclerView.Adapter<BeerListAdapter.BeerLi
         public static interface ViewHolderBeerClick {
 
         }
+    }
+
+    // Source: http://stackoverflow.com/a/26310638/2637528
+    public void removeAt(int position) {
+        beers.remove(position);
+        notifyItemRemoved(position);
+        notifyItemRangeChanged(position, beers.size());
+    }
+
+    public Beer getAt(int position) {
+        if(beers.size() > 0) {
+            return beers.get(position);
+
+        } else {
+            Log.e("LOG", "Can't get beer from empty list");
+            return null;
+        }
+    }
+
+    public void setAt(int position, Beer beer) {
+        beers.add(position, beer);
+        notifyItemChanged(position);
+        notifyItemRangeChanged(position, beers.size());
     }
 }
 
