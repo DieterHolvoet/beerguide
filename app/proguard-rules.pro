@@ -16,8 +16,11 @@
 #   public *;
 #}
 
+-dontobfuscate
 -dontwarn retrofit.**
 -keep class retrofit.** { *; }
 -keepattributes Signature
 -keepattributes Exceptions
 -keepclassmembers enum * { *; }
+-keep public class * extends com.orm.SugarRecord { *; }
+-keepclasseswithmembernames class com.orm.* { *; }

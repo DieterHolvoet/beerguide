@@ -39,4 +39,16 @@
         <item name="android:minHeight">36dp</item>
     </style>
 
+    <style name="smallRatingBar">
+        <item name="android:minHeight">20dp</item>
+        <item name="android:maxHeight">20dp</item>
+        <item name="android:progressDrawable">@drawable/star_empty</item>
+        <item name="android:indeterminateDrawable">@drawable/star_empty</item>
+        <item name="android:numStars">5</item>
+        <item name="android:rating">0</item>
+        <item name="android:stepSize">0.5</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
 </resources>

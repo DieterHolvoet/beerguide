@@ -1,4 +1,4 @@
-package be.dieterholvoet.beerapp;
+package be.dieterholvoet.beerguide;
 
 import org.junit.Test;
 
