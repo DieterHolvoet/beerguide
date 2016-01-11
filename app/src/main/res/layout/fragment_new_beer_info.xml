@@ -72,7 +72,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:textAppearance="?android:attr/textAppearanceMedium"
-                                android:text="ABV"
+                                android:text="@string/beer_abv"
                                 android:id="@+id/beer_info_abv_label"
                                 android:textColor="@color/white"
                                 android:textStyle="bold"
@@ -100,7 +100,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:textAppearance="?android:attr/textAppearanceMedium"
-                                android:text="IBU"
+                                android:text="@string/beer_ibu"
                                 android:id="@+id/beer_info_ibu_label"
                                 android:textColor="@color/white"
                                 android:textStyle="bold"
@@ -128,7 +128,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:textAppearance="?android:attr/textAppearanceMedium"
-                                android:text="SRM"
+                                android:text="@string/beer_srm"
                                 android:id="@+id/beer_info_srm_label"
                                 android:textColor="@color/white"
                                 android:textStyle="bold"
@@ -156,7 +156,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:textAppearance="?android:attr/textAppearanceMedium"
-                                android:text="OG"
+                                android:text="@string/beer_og"
                                 android:id="@+id/beer_info_og_label"
                                 android:textColor="@color/white"
                                 android:textStyle="bold"
@@ -202,7 +202,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="INFORMATION"
+                    android:text="@string/title_information"
+                    android:textAllCaps="true"
                     android:id="@+id/beer_info_info"
                     android:layout_marginBottom="7dp"
                     android:textStyle="bold" />
@@ -219,7 +220,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textAppearance="?android:attr/textAppearanceMedium"
-                            android:text="Brewery:"
+                            android:text="@string/beer_brewery"
                             android:id="@+id/beer_info_brewery_label"
                             android:paddingRight="9dp" />
 
@@ -240,7 +241,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textAppearance="?android:attr/textAppearanceMedium"
-                            android:text="Style:"
+                            android:text="@string/beer_style"
                             android:id="@+id/beer_info_style_label"
                             android:paddingRight="9dp" />
 
@@ -280,7 +281,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="DESCRIPTION"
+                    android:text="@string/title_description"
+                    android:textAllCaps="true"
                     android:id="@+id/beer_info_description_label"
                     android:layout_marginBottom="7dp"
                     android:textStyle="bold" />

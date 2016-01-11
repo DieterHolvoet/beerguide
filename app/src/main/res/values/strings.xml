@@ -6,6 +6,8 @@
 
     <string name="action_settings">Settings</string>
     <string name="action_refresh">Reload all beers</string>
+    <string name="action_save">Save</string>
+
     <string name="nav_achievements">Achievements</string>
     <string name="nav_lists">Lists</string>
     <string name="nav_checkins">Check-ins</string>
@@ -13,8 +15,46 @@
     <string name="nav_help"><![CDATA[Help & Feedback]]></string>
     <string name="nav_settings">Settings</string>
     <string name="nav_share">Share</string>
-    <string name="main_search_hint">Bier zoeken...</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="main_search_hint">Search for a beer...</string>
+
+    <string name="dialog_loading_beers">Loading beers...</string>
+    <string name="dialog_connection_failed">Can\'t connect to the server. Either there is no internet connection available, or the daily request limit of this app is reached. The app will be started in offline mode and search functionality will be disabled.</string>
+    <string name="dialog_overall_rating_before_save">Please give an overall rating before saving.</string>
+    <string name="title_information">Information</string>
+    <string name="title_description">Description</string>
+    <string name="title_coming_soon">Coming soon...</string>
+    <string name="title_notes">Notes</string>
+
+    <string name="tab_all">All</string>
+    <string name="tab_recent">Recent</string>
+    <string name="tab_favorites">Favorites</string>
+    <string name="tab_more">More</string>
+    <string name="tab_info">Info</string>
+    <string name="tab_appearance">Appearance</string>
+    <string name="tab_taste">Taste</string>
+    w<string name="tab_rating">Rating</string>
+
+    <string name="beer_abv" translatable="false">ABV</string>
+    <string name="beer_ibu" translatable="false">IBU</string>
+    <string name="beer_srm" translatable="false">SRM</string>
+    <string name="beer_og" translatable="false">OG</string>
+    <string name="beer_brewery">Brewery:</string>
+    <string name="beer_style">Style:</string>
+    <string name="beer_foam">Foam</string>
+    <string name="beer_foam_desc">How much foam does the beer produce?</string>
+    <string name="beer_color">Color</string>
+    <string name="beer_color_desc">How dark is the beer?</string>
+    <string name="beer_clearness">Clearness</string>
+    <string name="beer_clearness_desc">How clear is the beer, ranging from very clear to cloudy?</string>
+    <string name="beer_sweetness">Sweetness</string>
+    <string name="beer_sweetness_desc">How sweet is the beer?</string>
+    <string name="beer_sourness">Sourness</string>
+    <string name="beer_sourness_desc">How sour is the beer?</string>
+    <string name="beer_bitterness">Bitterness</string>
+    <string name="beer_bitterness_desc">How bitter is the beer?</string>
+    <string name="beer_fullness">Fullness</string>
+    <string name="beer_fullness_desc">How full is the taste of the beer?</string>
+    <string name="beer_overall_rating">Overall rating</string>
+
 </resources>

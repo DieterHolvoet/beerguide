@@ -24,10 +24,7 @@ import android.support.v4.widget.SimpleCursorAdapter;
 
 import com.squareup.otto.Subscribe;
 
-import java.util.List;
-
 import be.dieterholvoet.beerguide.adapters.ViewPagerAdapter;
-import be.dieterholvoet.beerguide.bus.BeerListTaskEvent;
 import be.dieterholvoet.beerguide.bus.EndPointAvailableEvent;
 import be.dieterholvoet.beerguide.bus.EventBus;
 import be.dieterholvoet.beerguide.fragments.BeersAllFragment;
@@ -36,7 +33,6 @@ import be.dieterholvoet.beerguide.fragments.BeersFavoritesFragment;
 import be.dieterholvoet.beerguide.fragments.BeersMoreFragment;
 import be.dieterholvoet.beerguide.listeners.SearchSuggestionListener;
 import be.dieterholvoet.beerguide.listeners.SearchTextListener;
-import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.rest.BreweryDB;
 import be.dieterholvoet.beerguide.adapters.SearchBeerResultsAdapter;
 import be.dieterholvoet.beerguide.tasks.RecentBeerListTask;
@@ -133,10 +129,10 @@ public class MainActivity extends AppCompatActivity {
         viewPager = (ViewPager) findViewById(R.id.main_viewpager);
 
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
-        adapter.addFrag(new BeersAllFragment(), "All");
-        adapter.addFrag(new BeersRecentFragment(), "Recent");
-        adapter.addFrag(new BeersFavoritesFragment(), "Favorites");
-        adapter.addFrag(new BeersMoreFragment(), "More");
+        adapter.addFrag(new BeersAllFragment(), getResources().getString(R.string.tab_all));
+        adapter.addFrag(new BeersRecentFragment(), getResources().getString(R.string.tab_recent));
+        adapter.addFrag(new BeersFavoritesFragment(), getResources().getString(R.string.tab_favorites));
+        adapter.addFrag(new BeersMoreFragment(), getResources().getString(R.string.tab_more));
 
         viewPager.setAdapter(adapter);
     }
@@ -226,8 +222,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("MAIN", "Not initializing searchview");
                 new AlertDialog.Builder(this)
                         .setTitle("Uh-oh!")
-                        .setMessage("Can't connect to the server. Either there is no internet connection available, or the daily request limit of this app is reached. " +
-                                "The app will be started in offline mode and search functionality will be disabled.")
+                        .setMessage(getResources().getString(R.string.dialog_connection_failed))
                         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 dialog.dismiss();

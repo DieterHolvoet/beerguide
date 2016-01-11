@@ -83,7 +83,7 @@ public class BeersRecentFragment extends Fragment {
             }
         });
 
-        progress = ProgressDialog.show(getActivity(), "", "Loading beers...", true);
+        progress = ProgressDialog.show(getActivity(), "", getResources().getString(R.string.dialog_loading_beers), true);
 
         new RecentBeerListTask(getActivity()).execute();
 

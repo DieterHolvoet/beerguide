@@ -55,9 +55,9 @@ public class NewBeerAppearanceFragment extends Fragment {
         }
 
         List<RatingElement> elements = new ArrayList<>();
-        elements.add(new RatingElement("Foam", "How much would you rate the quality of the beer foam?", R.drawable.beer_foam_m, rating.getFoam()));
-        elements.add(new RatingElement("Color", "Describe the color of the beer, ranging from very light to very dark.", R.drawable.beer_clearness_m, rating.getColor()));
-        elements.add(new RatingElement("Clearness", "Describe the clearness of the beer, ranging from very clear to cloudy.", R.drawable.beer_clearness_2_m, rating.getClarity()));
+        elements.add(new RatingElement(getResources().getString(R.string.beer_foam), getResources().getString(R.string.beer_foam_desc), R.drawable.beer_foam_m, rating.getFoam()));
+        elements.add(new RatingElement(getResources().getString(R.string.beer_color), getResources().getString(R.string.beer_color_desc), R.drawable.beer_clearness_m, rating.getColor()));
+        elements.add(new RatingElement(getResources().getString(R.string.beer_clearness), getResources().getString(R.string.beer_clearness_desc), R.drawable.beer_clearness_2_m, rating.getClarity()));
         RatingAdapter ra = new RatingAdapter(elements, getActivity());
 
         recycler.setHasFixedSize(true);

@@ -55,10 +55,10 @@ public class NewBeerTasteFragment extends Fragment {
         }
 
         List<RatingElement> elements = new ArrayList<>();
-        elements.add(new RatingElement("Sweet", "Describe the sweetness of the beer.", R.drawable.beer_sweet_m, rating.getSweetness()));
-        elements.add(new RatingElement("Sour", "Describe the sourness of the beer.", R.drawable.beer_sour_m, rating.getSourness()));
-        elements.add(new RatingElement("Bitter", "Describe the bitterness of the beer.", R.drawable.beer_bitter_m, rating.getBitterness()));
-        elements.add(new RatingElement("Full", "Describe the fullness of the beer.", R.drawable.beer_color_m, rating.getFullness()));
+        elements.add(new RatingElement(getResources().getString(R.string.beer_sweetness), getResources().getString(R.string.beer_sweetness_desc), R.drawable.beer_sweet_m, rating.getSweetness()));
+        elements.add(new RatingElement(getResources().getString(R.string.beer_sourness), getResources().getString(R.string.beer_sourness_desc), R.drawable.beer_sour_m, rating.getSourness()));
+        elements.add(new RatingElement(getResources().getString(R.string.beer_bitterness), getResources().getString(R.string.beer_bitterness_desc), R.drawable.beer_bitter_m, rating.getBitterness()));
+        elements.add(new RatingElement(getResources().getString(R.string.beer_fullness), getResources().getString(R.string.beer_fullness_desc), R.drawable.beer_color_m, rating.getFullness()));
         RatingAdapter ra = new RatingAdapter(elements, getActivity());
 
         recycler.setHasFixedSize(true);

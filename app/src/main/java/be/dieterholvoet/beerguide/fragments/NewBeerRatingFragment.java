@@ -69,7 +69,7 @@ public class NewBeerRatingFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if(beer.getRating().getRating() == 0) {
-                    Toast.makeText(getActivity(), "Please give an overall rating before saving.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), getResources().getString(R.string.dialog_overall_rating_before_save), Toast.LENGTH_SHORT).show();
 
                 } else {
                     beer.save();

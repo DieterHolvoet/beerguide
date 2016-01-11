@@ -72,10 +72,10 @@ public class NewBeerActivity extends AppCompatActivity {
         viewPager = (ViewPager) findViewById(R.id.new_beer_viewpager);
 
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
-        adapter.addFrag(new NewBeerInfoFragment(), "Info");
-        adapter.addFrag(new NewBeerAppearanceFragment(), "Appearance");
-        adapter.addFrag(new NewBeerTasteFragment(), "Taste");
-        adapter.addFrag(new NewBeerRatingFragment(), "Rating");
+        adapter.addFrag(new NewBeerInfoFragment(), getResources().getString(R.string.tab_info));
+        adapter.addFrag(new NewBeerAppearanceFragment(), getResources().getString(R.string.tab_appearance));
+        adapter.addFrag(new NewBeerTasteFragment(), getResources().getString(R.string.tab_taste));
+        adapter.addFrag(new NewBeerRatingFragment(), getResources().getString(R.string.tab_rating));
 
         viewPager.setAdapter(adapter);
     }
