@@ -63,6 +63,10 @@ public class BeerListAdapter extends RecyclerView.Adapter<BeerListAdapter.BeerLi
 
         } else {
             category = bdb.getStyle().getCategory();
+
+            if(category == null) {
+                category = new BreweryDBCategory();
+            }
         }
 
         String name = bdb.getName();

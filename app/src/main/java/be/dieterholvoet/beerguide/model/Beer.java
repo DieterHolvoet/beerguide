@@ -222,7 +222,7 @@ public class Beer extends SugarRecord implements Serializable {
 
             if(this.getBdb().getStyle() != null) {
                 if(this.getBdb().getStyle().getCategory() != null) {
-                    this.getBdb().getStyle().getCategory().delete();
+                    // this.getBdb().getStyle().getCategory().delete();
                 }
 
                 this.getBdb().getStyle().delete();
