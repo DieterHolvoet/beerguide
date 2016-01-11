@@ -5,6 +5,7 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+    <string name="action_refresh">Reload all beers</string>
     <string name="nav_achievements">Achievements</string>
     <string name="nav_lists">Lists</string>
     <string name="nav_checkins">Check-ins</string>

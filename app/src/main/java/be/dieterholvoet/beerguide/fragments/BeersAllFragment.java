@@ -29,7 +29,7 @@ import be.dieterholvoet.beerguide.bus.EventBus;
 import be.dieterholvoet.beerguide.bus.RecentBeerListTaskEvent;
 import be.dieterholvoet.beerguide.tasks.RecentBeerListTask;
 
-public class BeersRecentFragment extends Fragment {
+public class BeersAllFragment extends Fragment {
     View view;
     RecyclerView recycler;
     ProgressDialog progress;
@@ -56,9 +56,9 @@ public class BeersRecentFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        this.view = inflater.inflate(R.layout.fragment_beers_recent, null);
-        this.recycler = (RecyclerView) view.findViewById(R.id.fragment_recent_beers_recycler);
-        this.swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.fragment_recent_beers_swipe);
+        this.view = inflater.inflate(R.layout.fragment_beers_all, null);
+        this.recycler = (RecyclerView) view.findViewById(R.id.fragment_beers_all_recycler);
+        this.swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.fragment_beers_all_swipe);
 
         switch(getResources().getConfiguration().orientation) {
             // Portrait
@@ -84,7 +84,6 @@ public class BeersRecentFragment extends Fragment {
         });
 
         progress = ProgressDialog.show(getActivity(), "", "Loading beers...", true);
-
         new RecentBeerListTask(getActivity()).execute();
 
         return view;

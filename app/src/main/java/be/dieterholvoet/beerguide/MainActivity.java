@@ -30,6 +30,7 @@ import be.dieterholvoet.beerguide.adapters.ViewPagerAdapter;
 import be.dieterholvoet.beerguide.bus.BeerListTaskEvent;
 import be.dieterholvoet.beerguide.bus.EndPointAvailableEvent;
 import be.dieterholvoet.beerguide.bus.EventBus;
+import be.dieterholvoet.beerguide.fragments.BeersAllFragment;
 import be.dieterholvoet.beerguide.fragments.BeersRecentFragment;
 import be.dieterholvoet.beerguide.fragments.BeersFavoritesFragment;
 import be.dieterholvoet.beerguide.fragments.BeersMoreFragment;
@@ -38,6 +39,7 @@ import be.dieterholvoet.beerguide.listeners.SearchTextListener;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.rest.BreweryDB;
 import be.dieterholvoet.beerguide.adapters.SearchBeerResultsAdapter;
+import be.dieterholvoet.beerguide.tasks.RecentBeerListTask;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -63,11 +65,11 @@ public class MainActivity extends AppCompatActivity {
         BreweryDB.getInstance();
 
         // Initialize stuff
-        initializeFAB();
         initializeViewPager();
         initializeTabLayout();
         initializeDrawerLayout();
         initializeNavigationView();
+        initializeFAB();
         initializeToolbar();
 
         // Check for API availability
@@ -89,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
                 MainActivity.this.startActivity(intent);
             }
         });
+        fab.setVisibility(View.INVISIBLE);
     }
 
     private void initializeSearchView() {
@@ -130,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
         viewPager = (ViewPager) findViewById(R.id.main_viewpager);
 
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        adapter.addFrag(new BeersAllFragment(), "All");
         adapter.addFrag(new BeersRecentFragment(), "Recent");
         adapter.addFrag(new BeersFavoritesFragment(), "Favorites");
         adapter.addFrag(new BeersMoreFragment(), "More");
@@ -155,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
+        drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
     }
 
     private void initializeNavigationView() {
@@ -202,16 +207,12 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_refresh) {
+            new RecentBeerListTask(this).execute();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Subscribe
-    public void onBeerListTaskResult(BeerListTaskEvent event) {
-        List<Beer> beers = event.getBeers();
     }
 
     @Subscribe

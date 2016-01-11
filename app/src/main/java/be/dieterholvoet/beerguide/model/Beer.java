@@ -91,8 +91,7 @@ public class Beer extends SugarRecord implements Serializable {
         cal.add(Calendar.DATE, -daysCount);
 
         long time = cal.getTimeInMillis();
-        // return Select.from(Beer.class).where(Condition.prop("added").gt(time)).limit(String.valueOf(resultCount)).list();
-        return getAll();
+        return Select.from(Beer.class).where(Condition.prop("added").gt(time)).limit(String.valueOf(resultCount)).list();
     }
 
     public static List<Beer> getBreweryDBData(List<Beer> beers) {
