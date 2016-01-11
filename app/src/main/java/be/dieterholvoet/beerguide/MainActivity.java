@@ -1,13 +1,15 @@
 package be.dieterholvoet.beerguide;
 
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -19,7 +21,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.support.v4.widget.SimpleCursorAdapter;
-import android.widget.Toast;
 
 import com.squareup.otto.Subscribe;
 
@@ -27,8 +28,8 @@ import java.util.List;
 
 import be.dieterholvoet.beerguide.adapters.ViewPagerAdapter;
 import be.dieterholvoet.beerguide.bus.BeerListTaskEvent;
+import be.dieterholvoet.beerguide.bus.EndPointAvailableEvent;
 import be.dieterholvoet.beerguide.bus.EventBus;
-import be.dieterholvoet.beerguide.bus.RecentBeerListTaskEvent;
 import be.dieterholvoet.beerguide.fragments.BeersRecentFragment;
 import be.dieterholvoet.beerguide.fragments.BeersFavoritesFragment;
 import be.dieterholvoet.beerguide.fragments.BeersMoreFragment;
@@ -38,16 +39,17 @@ import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.rest.BreweryDB;
 import be.dieterholvoet.beerguide.adapters.SearchBeerResultsAdapter;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity {
 
-    DrawerLayout drawer;
-    NavigationView navigationView;
-    Toolbar toolbar;
-    TabLayout tabLayout;
-    ViewPager viewPager;
-    SearchView searchView;
-    SimpleCursorAdapter mSearchViewAdapter;
+    private DrawerLayout drawer;
+    private NavigationView navigationView;
+    private Toolbar toolbar;
+    private TabLayout tabLayout;
+    private ViewPager viewPager;
+    private SearchView searchView;
+    private SimpleCursorAdapter mSearchViewAdapter;
+
+    private boolean firstLoadDone = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,22 +62,36 @@ public class MainActivity extends AppCompatActivity
         // Initialize Retrofit Builder & search service
         BreweryDB.getInstance();
 
-        // Initialize drawerLayout
-        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
+        // Initialize stuff
+        initializeFAB();
+        initializeViewPager();
+        initializeTabLayout();
+        initializeDrawerLayout();
+        initializeNavigationView();
+        initializeToolbar();
 
-        // Initialize navigationView
-        navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+        // Check for API availability
+        BreweryDB.isEndpointAvailable(this);
+    }
 
-        // Initialize Toolbar
-        toolbar = (Toolbar) findViewById(R.id.main_toolbar);
-        setSupportActionBar(toolbar);
+    @Override
+    protected void onDestroy() {
+        EventBus.getInstance().unregister(this);
+        super.onDestroy();
+    }
 
-        // SearchView
+    private void initializeFAB() {
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, NewBeerActivity.class);
+                MainActivity.this.startActivity(intent);
+            }
+        });
+    }
+
+    private void initializeSearchView() {
         MatrixCursor cursor = new MatrixCursor(BreweryDB.getInstance().getColumns());
         String[] columns = BreweryDB.getInstance().getColumns();
 
@@ -98,7 +114,6 @@ public class MainActivity extends AppCompatActivity
             public void onFocusChange(View view, boolean queryTextFocused) {
                 if (!queryTextFocused) {
                     searchView.onActionViewCollapsed();
-                    // searchView.setQuery("", false);
                 }
             }
         });
@@ -109,22 +124,20 @@ public class MainActivity extends AppCompatActivity
         EditText searchEditText = (EditText) searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
         searchEditText.setTextColor(getResources().getColor(R.color.colorPrimary));
         searchEditText.setHintTextColor(getResources().getColor(R.color.colorPrimary));
+    }
 
-        // Initialize FAB
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, NewBeerActivity.class);
-                MainActivity.this.startActivity(intent);
-            }
-        });
-
-        // Initialize viewPager
+    private void initializeViewPager() {
         viewPager = (ViewPager) findViewById(R.id.main_viewpager);
-        setupViewPager(viewPager);
 
-        // Initialize tabLayout
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        adapter.addFrag(new BeersRecentFragment(), "Recent");
+        adapter.addFrag(new BeersFavoritesFragment(), "Favorites");
+        adapter.addFrag(new BeersMoreFragment(), "More");
+
+        viewPager.setAdapter(adapter);
+    }
+
+    private void initializeTabLayout() {
         tabLayout = (TabLayout) findViewById(R.id.main_tabs);
 
         // Workaround for setupWithViewPager
@@ -134,56 +147,46 @@ public class MainActivity extends AppCompatActivity
                 tabLayout.setupWithViewPager(viewPager);
             }
         });
+    }
 
-        // Add onTabSelectedListener
-        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+    private void initializeDrawerLayout() {
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+    }
+
+    private void initializeNavigationView() {
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                viewPager.setCurrentItem(tab.getPosition());
-                switch (tab.getPosition()) {
-                    case 0:
-                        Toast.makeText(MainActivity.this, "One", Toast.LENGTH_SHORT).show();
-                        break;
+            public boolean onNavigationItemSelected(MenuItem item) {
+                int id = item.getItemId();
 
-                    case 1:
-                        Toast.makeText(MainActivity.this, "Two", Toast.LENGTH_SHORT).show();
-                        break;
+                if (id == R.id.nav_beers) {
 
-                    case 2:
-                        Toast.makeText(MainActivity.this, "Three", Toast.LENGTH_SHORT).show();
-                        break;
                 }
-            }
 
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-            }
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
+                DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+                drawer.closeDrawer(GravityCompat.START);
+                return true;
             }
         });
     }
 
-    private void setupViewPager(ViewPager viewPager) {
-        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
-        adapter.addFrag(new BeersRecentFragment(), "Recent");
-        adapter.addFrag(new BeersFavoritesFragment(), "Favorites");
-        adapter.addFrag(new BeersMoreFragment(), "More");
-        viewPager.setAdapter(adapter);
-    }
-
-    @Override
-    protected void onDestroy() {
-        EventBus.getInstance().unregister(this);
-        super.onDestroy();
+    private void initializeToolbar() {
+        toolbar = (Toolbar) findViewById(R.id.main_toolbar);
+        setSupportActionBar(toolbar);
     }
 
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
+
         } else {
             super.onBackPressed();
         }
@@ -191,19 +194,14 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
@@ -211,25 +209,34 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-        if (id == R.id.nav_beers) {
-
-        } else if (id == R.id.nav_achievements) {
-
-        }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
-    }
-
     @Subscribe
     public void onBeerListTaskResult(BeerListTaskEvent event) {
         List<Beer> beers = event.getBeers();
+    }
+
+    @Subscribe
+    public void onEndPointAvailableResult(EndPointAvailableEvent event) {
+        if(!firstLoadDone) {
+            if(event.isAvailable()) {
+                Log.e("MAIN", "Initializing searchview");
+                initializeSearchView();
+
+            } else {
+                Log.e("MAIN", "Not initializing searchview");
+                new AlertDialog.Builder(this)
+                        .setTitle("Uh-oh!")
+                        .setMessage("Can't connect to the server. Either there is no internet connection available, or the daily request limit of this app is reached. " +
+                                "The app will be started in offline mode and search functionality will be disabled.")
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .setIcon(R.drawable.alert_circle)
+                        .show();
+            }
+
+            firstLoadDone = true;
+        }
     }
 }

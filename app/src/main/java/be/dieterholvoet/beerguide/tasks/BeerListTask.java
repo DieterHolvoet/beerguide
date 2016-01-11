@@ -1,5 +1,6 @@
 package be.dieterholvoet.beerguide.tasks;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -15,22 +16,17 @@ import be.dieterholvoet.beerguide.rest.BreweryDB;
  * Created by Dieter on 9/01/2016.
  */
 public class BeerListTask extends AsyncTask<Void, Void, List<Beer>> {
+    Context context;
+
+    public BeerListTask(Context context) {
+        this.context = context;
+    }
 
     @Override
     protected List<Beer> doInBackground(Void... params) {
         List<Beer> beers = Beer.getAll();
-
-        for(Beer beer : beers) {
-            BreweryDBBeer bdb = beer.getBdb();
-            if(bdb.getYear() == null || bdb.getYear().isEmpty()) {
-                if(bdb.getBreweryDBID() == null) {
-                    Log.e("API", "No BreweryDB ID provided.");
-
-                } else {
-                    beer.setBdb(BreweryDB.getInstance().getBeerByID(bdb.getBreweryDBID()));
-                    beer.save();
-                }
-            }
+        if(BreweryDB.isNetworkAvailable(context)) {
+            beers = Beer.getBreweryDBData(beers);
         }
         return beers;
     }

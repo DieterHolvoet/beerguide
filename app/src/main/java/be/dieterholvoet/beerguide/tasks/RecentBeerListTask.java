@@ -1,6 +1,8 @@
 package be.dieterholvoet.beerguide.tasks;
 
+import android.content.Context;
 import android.os.AsyncTask;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
 import java.util.List;
@@ -17,22 +19,17 @@ import be.dieterholvoet.beerguide.rest.BreweryDB;
  */
 
 public class RecentBeerListTask extends AsyncTask<Void, Void, List<Beer>> {
+    Context context;
+
+    public RecentBeerListTask(Context context) {
+        this.context = context;
+    }
 
     @Override
     protected List<Beer> doInBackground(Void... params) {
         List<Beer> beers = Beer.getRecent();
-
-        for(Beer beer : beers) {
-            BreweryDBBeer bdb = beer.getBdb();
-            if(bdb.getYear() == null || bdb.getYear().isEmpty()) {
-                if(bdb.getBreweryDBID() == null) {
-                    Log.e("API", "No BreweryDB ID provided.");
-
-                } else {
-                    beer.setBdb(BreweryDB.getInstance().getBeerByID(bdb.getBreweryDBID()));
-                    beer.save();
-                }
-            }
+        if(BreweryDB.isNetworkAvailable(context)) {
+            beers = Beer.getBreweryDBData(beers);
         }
         return beers;
     }

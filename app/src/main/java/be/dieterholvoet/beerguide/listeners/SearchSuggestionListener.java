@@ -9,6 +9,8 @@ import android.support.v7.widget.SearchView;
 
 import be.dieterholvoet.beerguide.MainActivity;
 import be.dieterholvoet.beerguide.NewBeerActivity;
+import be.dieterholvoet.beerguide.model.Beer;
+import be.dieterholvoet.beerguide.model.BreweryDBBeer;
 
 /**
  * Created by Dieter on 9/01/2016.
@@ -33,10 +35,7 @@ public class SearchSuggestionListener implements SearchView.OnSuggestionListener
         Cursor cursor = (Cursor) view.getSuggestionsAdapter().getItem(position);
         Intent intent = new Intent(context, NewBeerActivity.class);
         Bundle b = new Bundle();
-
-        b.putString("name", cursor.getString(1));
-        b.putString("id", cursor.getString(2));
-
+        b.putSerializable("currentBeer", new Beer(new BreweryDBBeer(cursor.getString(2), cursor.getString(1))));
         intent.putExtras(b);
         context.startActivity(intent);
         context.finish();

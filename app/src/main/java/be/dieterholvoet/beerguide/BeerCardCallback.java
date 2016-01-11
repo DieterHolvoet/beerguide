@@ -34,12 +34,14 @@ public class BeerCardCallback extends ItemTouchHelper.SimpleCallback {
         final int position = viewHolder.getAdapterPosition();
         final Beer beer = adapter.getAt(position);
         adapter.removeAt(position);
+        beer.delete();
 
         snackbar.setAction("Undo", new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 snackbar.dismiss();
                 adapter.setAt(position, beer);
+                beer.save();
                 lm.scrollToPosition(position);
                 Log.e("BEER", "Removal cancelled.");
             }

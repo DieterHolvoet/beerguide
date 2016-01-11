@@ -7,8 +7,8 @@ package be.dieterholvoet.beerguide.fragments;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -23,24 +23,32 @@ import com.squareup.otto.Subscribe;
 import java.util.ArrayList;
 
 import be.dieterholvoet.beerguide.BeerCardCallback;
-import be.dieterholvoet.beerguide.ItemOffsetDecoration;
 import be.dieterholvoet.beerguide.R;
-import be.dieterholvoet.beerguide.SpacesItemDecoration;
 import be.dieterholvoet.beerguide.adapters.BeerListAdapter;
 import be.dieterholvoet.beerguide.bus.EventBus;
 import be.dieterholvoet.beerguide.bus.RecentBeerListTaskEvent;
-import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.tasks.RecentBeerListTask;
 
 public class BeersRecentFragment extends Fragment {
+    View view;
     RecyclerView recycler;
     ProgressDialog progress;
+    SwipeRefreshLayout swipeRefreshLayout;
+    
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+    }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         EventBus.getInstance().register(this);
-        recycler = (RecyclerView) inflater.inflate(R.layout.fragment_beers_recent, null);
+
+        this.view = inflater.inflate(R.layout.fragment_beers_recent, null);
+        this.recycler = (RecyclerView) view.findViewById(R.id.fragment_recent_beers_recycler);
+        this.swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.fragment_recent_beers_swipe);
 
         switch(getResources().getConfiguration().orientation) {
             // Portrait
@@ -57,11 +65,19 @@ public class BeersRecentFragment extends Fragment {
         recycler.setHasFixedSize(true);
         recycler.setAdapter(new BeerListAdapter(new ArrayList(), getActivity()));
 
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Log.e("LOG", "Refreshing...");
+                new RecentBeerListTask(getActivity()).execute();
+            }
+        });
+
         progress = ProgressDialog.show(getActivity(), "", "Loading beers...", true);
 
-        new RecentBeerListTask().execute();
+        new RecentBeerListTask(getActivity()).execute();
 
-        return recycler;
+        return view;
     }
 
     @Subscribe
@@ -69,14 +85,13 @@ public class BeersRecentFragment extends Fragment {
         recycler.setAdapter(new BeerListAdapter(event.getBeers(), getActivity()));
         progress.dismiss();
 
-        if(event.getBeers().size() > 0) {
-            Log.e("BEER", "Name: " + event.getBeers().get(0).getBdb().getName());
-            Log.e("BEER", "Rating: " + event.getBeers().get(0).getRating().getRating());
-            Log.e("BEER", "Category: " + event.getBeers().get(0).getBdb().getStyle().getCategory().getName());
-        }
-
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new BeerCardCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT, recycler));
         itemTouchHelper.attachToRecyclerView(recycler);
+
+        if(swipeRefreshLayout.isRefreshing()) {
+            swipeRefreshLayout.setRefreshing(false);
+            Log.e("LOG", "Refreshing done.");
+        }
     }
 
     @Override

@@ -1,4 +1,4 @@
-package be.dieterholvoet.beerguide;
+package be.dieterholvoet.beerguide.tasks;
 
 import android.database.MatrixCursor;
 import android.os.AsyncTask;
@@ -15,7 +15,7 @@ import be.dieterholvoet.beerguide.rest.BreweryDB;
  * Created by Dieter on 30/12/2015.
  */
 
-public class SearchSuggestionThread extends AsyncTask<Void, Void, Void> {
+public class SearchSuggestionTask extends AsyncTask<Void, Void, Void> {
     SimpleCursorAdapter searchViewAdapter;
     SearchView searchView;
     MatrixCursor cursor;
@@ -23,7 +23,7 @@ public class SearchSuggestionThread extends AsyncTask<Void, Void, Void> {
     String query;
     List<BreweryDBResultBeer> results;
 
-    public SearchSuggestionThread(SearchView searchView, BreweryDB dao, String query) {
+    public SearchSuggestionTask(SearchView searchView, BreweryDB dao, String query) {
         this.searchView = searchView;
         this.searchViewAdapter = (SimpleCursorAdapter) searchView.getSuggestionsAdapter();
         this.cursor = (MatrixCursor) this.searchViewAdapter.getCursor();
@@ -33,16 +33,19 @@ public class SearchSuggestionThread extends AsyncTask<Void, Void, Void> {
 
     @Override
     protected Void doInBackground(Void... params) {
-        Log.e("thread", "Starting search.");
-        this.results = dao.searchBeersSynchronous(query);
-        Log.e("thread", "Converting to cursor.");
-        this.cursor = dao.convertToCursor(results);
+        this.results = dao.searchBeers(query);
+
+        if(results == null) {
+            cancel(true);
+        } else {
+            this.cursor = dao.convertToCursor(results);
+        }
+
         return null;
     }
 
     @Override
     protected void onPostExecute(Void aVoid) {
-        Log.e("thread", "Search done!");
         this.searchViewAdapter.changeCursor(cursor);
     }
 }

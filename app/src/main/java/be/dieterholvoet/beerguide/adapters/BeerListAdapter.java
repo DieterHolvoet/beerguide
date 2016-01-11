@@ -1,7 +1,9 @@
 package be.dieterholvoet.beerguide.adapters;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -17,6 +19,7 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import be.dieterholvoet.beerguide.NewBeerActivity;
 import be.dieterholvoet.beerguide.R;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.model.BreweryDBBeer;
@@ -28,7 +31,7 @@ import be.dieterholvoet.beerguide.model.BreweryDBCategory;
 
 public class BeerListAdapter extends RecyclerView.Adapter<BeerListAdapter.BeerListViewHolder> {
 
-    private List<Beer> beers;
+    private static List<Beer> beers;
     private Activity activity;
 
     public BeerListAdapter(List<Beer> beers, Activity activity) {
@@ -87,7 +90,7 @@ public class BeerListAdapter extends RecyclerView.Adapter<BeerListAdapter.BeerLi
         }
 
 
-        Drawable starDrawable = ContextCompat.getDrawable(activity, R.drawable.star_full);
+        Drawable starDrawable = ContextCompat.getDrawable(activity, R.drawable.star_small_full);
         LayoutParams params = (LayoutParams) ratingViewHolder.rating.getLayoutParams();
         params.height = starDrawable.getMinimumHeight();
         ratingViewHolder.rating.setLayoutParams(params);
@@ -100,8 +103,6 @@ public class BeerListAdapter extends RecyclerView.Adapter<BeerListAdapter.BeerLi
                 }
             }
         });
-
-
     }
 
     @Override
@@ -110,23 +111,18 @@ public class BeerListAdapter extends RecyclerView.Adapter<BeerListAdapter.BeerLi
                 from(viewGroup.getContext()).
                 inflate(R.layout.item_beer, viewGroup, false);
 
-        BeerListAdapter.BeerListViewHolder vh = new BeerListViewHolder(v, new BeerListAdapter.BeerListViewHolder.ViewHolderBeerClick() {
-
-        });
-
-        return vh;
+        return new BeerListViewHolder(v);
     }
 
     public static class BeerListViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        protected ViewHolderBeerClick listener;
         protected TextView name;
         protected TextView category;
         protected ImageView img;
         protected RatingBar rating;
 
-        public BeerListViewHolder(View v, ViewHolderBeerClick listener) {
+        public BeerListViewHolder(View v) {
             super(v);
-            this.listener = listener;
+            v.setOnClickListener(this);
             this.name =  (TextView) v.findViewById(R.id.item_beer_name);
             this.category = (TextView)  v.findViewById(R.id.item_beer_category_text);
             this.rating = (RatingBar)  v.findViewById(R.id.ratingbar_small);
@@ -135,12 +131,15 @@ public class BeerListAdapter extends RecyclerView.Adapter<BeerListAdapter.BeerLi
 
         @Override
         public void onClick(View v) {
+            Log.e("LOG", "Click!");
+            Beer beer = beers.get(getAdapterPosition());
+            Intent intent = new Intent(v.getContext(), NewBeerActivity.class);
+            Bundle b = new Bundle();
 
-        }
+            b.putSerializable("currentBeer", beer);
+            intent.putExtras(b);
 
-        // Source: http://stackoverflow.com/a/24933117/2637528
-        public static interface ViewHolderBeerClick {
-
+            v.getContext().startActivity(intent);
         }
     }
 

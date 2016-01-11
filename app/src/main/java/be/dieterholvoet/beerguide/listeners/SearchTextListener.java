@@ -8,7 +8,7 @@ import android.support.v4.widget.CursorAdapter;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import be.dieterholvoet.beerguide.SearchSuggestionThread;
+import be.dieterholvoet.beerguide.tasks.SearchSuggestionTask;
 import be.dieterholvoet.beerguide.rest.BreweryDB;
 
 /**
@@ -29,7 +29,7 @@ public class SearchTextListener implements SearchView.OnQueryTextListener {
     }
 
     private void loadSearchData(String query) {
-        new SearchSuggestionThread(view, dao, query).execute();
+        new SearchSuggestionTask(view, dao, query).execute();
     }
 
     @Override

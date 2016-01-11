@@ -2,11 +2,13 @@ package be.dieterholvoet.beerguide.model;
 
 import com.orm.SugarRecord;
 
+import java.io.Serializable;
+
 /**
  * Created by Dieter on 29/12/2015.
  */
 
-public class BreweryDBLabel extends SugarRecord {
+public class BreweryDBLabel extends SugarRecord implements Serializable {
     private String medium;
     private String large;
     private String icon;

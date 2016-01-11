@@ -2,6 +2,7 @@ package be.dieterholvoet.beerguide.adapters;
 
 import android.app.Activity;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -130,7 +131,6 @@ public class RatingAdapter extends RecyclerView.Adapter<RatingAdapter.RatingView
             this.rating = (RatingBar) v.findViewById(R.id.rating_card_rating);
             this.rating.setOnRatingBarChangeListener(this);
             this.rating.setTag(this); // Source: http://stackoverflow.com/a/26942340/2637528
-            this.name = this.title.getText().toString();
         }
 
         @Override
@@ -139,7 +139,7 @@ public class RatingAdapter extends RecyclerView.Adapter<RatingAdapter.RatingView
             int rating_num = Math.round(ratingBar.getRating());
             
             if(rating != 0) {
-                switch(viewHolder.name) {
+                switch(viewHolder.title.getText().toString()) {
                     case "Foam":
                         listener.onAppearanceFoamRatingChange(rating_num);
                         break;

@@ -11,6 +11,13 @@ public class BreweryDBResultBeer {
     private String year;
     BreweryDBLabel labels;
     BreweryDBStyle style;
+    BreweryDBAvailability availability;
+    BreweryDBSRM srm;
+    BreweryDBBrewery brewery;
+    String abv;
+    String ibu;
+    String og;
+    String description;
 
     public BreweryDBResultBeer() {
     }
@@ -58,5 +65,61 @@ public class BreweryDBResultBeer {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getAbv() {
+        return abv;
+    }
+
+    public void setAbv(String abv) {
+        this.abv = abv;
+    }
+
+    public BreweryDBAvailability getAvailability() {
+        return availability;
+    }
+
+    public void setAvailability(BreweryDBAvailability availability) {
+        this.availability = availability;
+    }
+
+    public BreweryDBBrewery getBrewery() {
+        return brewery;
+    }
+
+    public void setBrewery(BreweryDBBrewery brewery) {
+        this.brewery = brewery;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getIbu() {
+        return ibu;
+    }
+
+    public void setIbu(String ibu) {
+        this.ibu = ibu;
+    }
+
+    public String getOg() {
+        return og;
+    }
+
+    public void setOg(String og) {
+        this.og = og;
+    }
+
+    public BreweryDBSRM getSrm() {
+        return srm;
+    }
+
+    public void setSrm(BreweryDBSRM srm) {
+        this.srm = srm;
     }
 }

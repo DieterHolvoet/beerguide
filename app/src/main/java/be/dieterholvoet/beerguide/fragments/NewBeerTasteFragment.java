@@ -30,6 +30,12 @@ public class NewBeerTasteFragment extends Fragment {
     RecyclerView recycler;
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         this.activity = (NewBeerActivity) getActivity();
         this.beer = activity.getBeer();

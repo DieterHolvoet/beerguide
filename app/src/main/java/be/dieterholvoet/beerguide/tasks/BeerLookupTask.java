@@ -1,9 +1,11 @@
 package be.dieterholvoet.beerguide.tasks;
 
+import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 
-import java.util.ArrayList;
-
+import be.dieterholvoet.beerguide.bus.BeerLookupTaskEvent;
+import be.dieterholvoet.beerguide.bus.EventBus;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.rest.BreweryDB;
 
@@ -11,23 +13,28 @@ import be.dieterholvoet.beerguide.rest.BreweryDB;
  * Created by Dieter on 9/01/2016.
  */
 public class BeerLookupTask extends AsyncTask<Void, Void, Void> {
-
+    Context context;
     private BreweryDB API;
     private Beer beer;
 
-    public BeerLookupTask(Beer beer) {
+    public BeerLookupTask(Context context, Beer beer) {
+        this.context = context;
         this.beer = beer;
-        this.API = BreweryDB.getInstance();
     }
 
     @Override
     protected Void doInBackground(Void... params) {
-        beer.setBdb(API.getBeerByID(beer.getBdb().getBreweryDBID()));
+        if(BreweryDB.isNetworkAvailable(context)) {
+            beer = Beer.getBreweryDBData(beer);
+
+        } else {
+            Log.e("LOOKUPTASK", "Network not available");
+        }
         return null;
     }
 
     @Override
     protected void onPostExecute(Void aVoid) {
-
+        EventBus.getInstance().post(new BeerLookupTaskEvent(beer));
     }
 }

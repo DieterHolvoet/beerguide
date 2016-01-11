@@ -1,18 +1,30 @@
 package be.dieterholvoet.beerguide.rest;
 
+import android.content.Context;
 import android.database.MatrixCursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
+import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import be.dieterholvoet.beerguide.bus.EndPointAvailableEvent;
+import be.dieterholvoet.beerguide.bus.EventBus;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.model.BreweryDBBeer;
+import be.dieterholvoet.beerguide.model.BreweryDBBrewery;
+import be.dieterholvoet.beerguide.model.BreweryDBResponseBrewery;
 import be.dieterholvoet.beerguide.model.BreweryDBResponseLookup;
 import be.dieterholvoet.beerguide.model.BreweryDBResultBeer;
 import be.dieterholvoet.beerguide.model.BreweryDBResponseSearch;
+import be.dieterholvoet.beerguide.tasks.EndpointAvailabilityCheckTask;
 import retrofit.Call;
 import retrofit.Callback;
 import retrofit.GsonConverterFactory;
@@ -33,6 +45,8 @@ public class BreweryDB {
     private final String API_KEY = "63d5648e9125519e5f284d89a1e50f3e";
     private final String BASE_URL = "http://api.brewerydb.com/v2";
     private final String LOG_TAG = "DAO";
+
+    private static boolean dailyLimitReached = false;
 
     public BreweryDB() {
         restAdapter = new Retrofit.Builder()
@@ -55,54 +69,6 @@ public class BreweryDB {
     }
 
     public List<BreweryDBResultBeer> searchBeers(String query) {
-        final List<BreweryDBResultBeer>[] results = new List[1];
-        final BreweryDB context = this;
-
-        HashMap queryMap = new HashMap();
-        queryMap.put("key", API_KEY);
-        queryMap.put("type", "beer");
-        queryMap.put("q", query);
-
-        Call<BreweryDBResponseSearch> call = searchService.searchBeers(queryMap);
-        call.enqueue(new Callback<BreweryDBResponseSearch>() {
-
-            @Override
-            public void onResponse(Response<BreweryDBResponseSearch> response, Retrofit retrofit) {
-                if(response.isSuccess()) {
-                    if(response.body().getData() == null) {
-                        Log.e(LOG_TAG, response.message());
-
-                    } else {
-                        List<BreweryDBResultBeer> BreweryDBBeers = response.body().getData();
-                        results[0] = BreweryDBBeers;
-                    }
-
-
-                } else {
-                    try {
-                        Log.e(LOG_TAG, response.errorBody().string());
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                try {
-                    throw t;
-
-                } catch (Throwable throwable) {
-                    throwable.printStackTrace();
-                }
-            }
-        });
-
-        return results[0];
-    }
-
-    public List<BreweryDBResultBeer> searchBeersSynchronous(String query) {
         HashMap queryMap = new HashMap();
         queryMap.put("key", API_KEY);
         queryMap.put("type", "beer");
@@ -111,7 +77,12 @@ public class BreweryDB {
         Call<BreweryDBResponseSearch> call = searchService.searchBeers(queryMap);
         BreweryDBResponseSearch response = (BreweryDBResponseSearch) executeAndTestResponse(call);
 
-        return response.getData();
+        if(response == null) {
+            return null;
+
+        } else {
+            return response.getData();
+        }
     }
 
     public BreweryDBBeer getBeerByID(String beerID) {
@@ -121,7 +92,27 @@ public class BreweryDB {
         Call call = searchService.getBeerByID(beerID, queryMap);
         BreweryDBResponseLookup data = (BreweryDBResponseLookup) executeAndTestResponse(call);
 
-        return new BreweryDBBeer(data.getData());
+        if(data == null) {
+            return null;
+
+        } else {
+            return new BreweryDBBeer(data.getData());
+        }
+    }
+
+    public BreweryDBBrewery getBreweryByID(String breweryID) {
+        HashMap queryMap = new HashMap();
+        queryMap.put("key", API_KEY);
+
+        Call call = searchService.getBreweryByID(breweryID, queryMap);
+        BreweryDBResponseBrewery data = (BreweryDBResponseBrewery) executeAndTestResponse(call);
+
+        if(data == null) {
+            return null;
+
+        } else {
+            return new BreweryDBBrewery(data.getData());
+        }
     }
 
     private Object executeAndTestResponse(Call call) {
@@ -149,9 +140,16 @@ public class BreweryDB {
 
             } else {
                 try {
-                    Log.e(LOG_TAG, response.errorBody().string());
+                    String message = new JSONObject(response.errorBody().string()).getString("errorMessage");
+                    if(message.indexOf("API limit") != -1) {
+                        Log.e(LOG_TAG, "Daily API limit was reached. Try again tomorrow.");
+                        dailyLimitReached = true;
 
-                } catch (IOException e) {
+                    } else {
+                        Log.e(LOG_TAG, message);
+                    }
+
+                } catch (IOException | JSONException e) {
                     e.printStackTrace();
                 }
             }
@@ -203,10 +201,30 @@ public class BreweryDB {
                 }
 
             } else {
-                Log.e("", "Unknown list item type.");
+                Log.e(LOG_TAG, "Unknown list item type.");
             }
         }
 
         return cursor;
+    }
+
+    public static boolean isNetworkAvailable(Context c) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) c.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        boolean networkAvailable = activeNetworkInfo != null && activeNetworkInfo.isConnected();
+
+        if(!networkAvailable) {
+            Log.e("API", "No network available.");
+        }
+
+        return networkAvailable;
+    }
+
+    public static void isEndpointAvailable(Context context) {
+        new EndpointAvailabilityCheckTask(context).execute();
+    }
+
+    public static boolean isDailyLimitReached() {
+        return dailyLimitReached;
     }
 }

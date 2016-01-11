@@ -2,11 +2,13 @@ package be.dieterholvoet.beerguide.model;
 
 import com.orm.SugarRecord;
 
+import java.io.Serializable;
+
 /**
  * Created by Dieter on 8/01/2016.
  */
 
-public class BeerRating extends SugarRecord {
+public class BeerRating extends SugarRecord implements Serializable {
     private int foam;
     private int color;
     private int clarity;
@@ -14,7 +16,7 @@ public class BeerRating extends SugarRecord {
     private int sourness;
     private int bitterness;
     private int fullness;
-    private int rating;
+    private float rating;
 
     public BeerRating() {
     }
@@ -59,11 +61,11 @@ public class BeerRating extends SugarRecord {
         this.fullness = fullness;
     }
 
-    public int getRating() {
+    public float getRating() {
         return rating;
     }
 
-    public void setRating(int rating) {
+    public void setRating(float rating) {
         this.rating = rating;
     }
 

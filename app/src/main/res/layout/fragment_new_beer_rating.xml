@@ -121,7 +121,8 @@
                     android:ems="10"
                     android:id="@+id/editText"
                     android:minLines="3"
-                    android:lines="3" />
+                    android:lines="3"
+                    android:gravity="top" />
             </LinearLayout>
 
         </LinearLayout>
