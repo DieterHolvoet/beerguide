@@ -7,6 +7,7 @@ package be.dieterholvoet.beerguide.fragments;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
@@ -32,8 +33,8 @@ import be.dieterholvoet.beerguide.tasks.RecentBeerListTask;
 public class BeersAllFragment extends Fragment {
     View view;
     RecyclerView recycler;
-    ProgressDialog progress;
     SwipeRefreshLayout swipeRefreshLayout;
+    Snackbar snackbar;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -83,16 +84,21 @@ public class BeersAllFragment extends Fragment {
             }
         });
 
-        progress = ProgressDialog.show(getActivity(), "", "Loading beers...", true);
-        new RecentBeerListTask(getActivity()).execute();
-
         return view;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        snackbar = Snackbar.make(getView(), getResources().getString(R.string.dialog_loading_beers), Snackbar.LENGTH_INDEFINITE);
+        snackbar.show();
+        new RecentBeerListTask(getActivity()).execute();
     }
 
     @Subscribe
     public void onRecentBeerListTaskResult(RecentBeerListTaskEvent event) {
         recycler.setAdapter(new BeerListAdapter(event.getBeers(), getActivity()));
-        progress.dismiss();
+        snackbar.dismiss();
 
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new BeerCardCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT, recycler));
         itemTouchHelper.attachToRecyclerView(recycler);
