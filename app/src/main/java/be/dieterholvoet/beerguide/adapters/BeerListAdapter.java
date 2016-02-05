@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -21,6 +22,7 @@ import java.util.List;
 
 import be.dieterholvoet.beerguide.NewBeerActivity;
 import be.dieterholvoet.beerguide.R;
+import be.dieterholvoet.beerguide.db.BeerDAO;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.model.BreweryDBBeer;
 import be.dieterholvoet.beerguide.model.BreweryDBCategory;
@@ -29,7 +31,7 @@ import be.dieterholvoet.beerguide.model.BreweryDBCategory;
  * Created by Dieter on 8/01/2016.
  */
 
-public class BeerListAdapter extends RecyclerView.Adapter<BeerListAdapter.BeerListViewHolder> {
+public class BeerListAdapter extends RecyclerView.Adapter<BeerListAdapter.BeerListViewHolder> implements ItemTouchHelperAdapter {
 
     private static List<Beer> beers;
     private Activity activity;
@@ -115,7 +117,37 @@ public class BeerListAdapter extends RecyclerView.Adapter<BeerListAdapter.BeerLi
                 from(viewGroup.getContext()).
                 inflate(R.layout.item_beer, viewGroup, false);
 
-        return new BeerListViewHolder(v);
+        return new BeerListViewHolder(v, activity);
+    }
+
+    @Override
+    public void onItemMove(int fromPosition, int toPosition) {
+    }
+
+    @Override
+    public void onItemDismiss(RecyclerView recycler, final int position) {
+        final BeerListAdapter adapter = (BeerListAdapter) recycler.getAdapter();
+        final RecyclerView.LayoutManager lm = recycler.getLayoutManager();
+        final Beer beer = adapter.getAt(position);
+
+        final Snackbar snackbar = Snackbar.make(recycler, "Beer removed.", Snackbar.LENGTH_LONG);
+        snackbar.setCallback(new Snackbar.Callback() {
+            @Override
+            public void onDismissed(Snackbar snackbar, int event) {
+                adapter.removeAt(position);
+                BeerDAO.delete(beer);
+            }
+        });
+        snackbar.setAction("Undo", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                adapter.notifyDataSetChanged();
+                snackbar.setCallback(null);
+                snackbar.dismiss();
+            }
+        });
+
+        snackbar.show();
     }
 
     public static class BeerListViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -123,10 +155,12 @@ public class BeerListAdapter extends RecyclerView.Adapter<BeerListAdapter.BeerLi
         protected TextView category;
         protected ImageView img;
         protected RatingBar rating;
+        protected Activity activity;
 
-        public BeerListViewHolder(View v) {
+        public BeerListViewHolder(View v, Activity a) {
             super(v);
             v.setOnClickListener(this);
+            this.activity = a;
             this.name =  (TextView) v.findViewById(R.id.item_beer_name);
             this.category = (TextView)  v.findViewById(R.id.item_beer_category_text);
             this.rating = (RatingBar)  v.findViewById(R.id.ratingbar_small);
@@ -137,13 +171,15 @@ public class BeerListAdapter extends RecyclerView.Adapter<BeerListAdapter.BeerLi
         public void onClick(View v) {
             Log.e("LOG", "Click!");
             Beer beer = beers.get(getAdapterPosition());
-            Intent intent = new Intent(v.getContext(), NewBeerActivity.class);
+            Intent intent = new Intent(activity, NewBeerActivity.class);
             Bundle b = new Bundle();
 
-            b.putSerializable("currentBeer", beer);
+            b.putString("bdbID", beer.getBdb().getBreweryDBID());
+            b.putString("beerName", beer.getBdb().getName());
             intent.putExtras(b);
 
-            v.getContext().startActivity(intent);
+            activity.startActivity(intent);
+            activity.overridePendingTransition(R.anim.left_in, R.anim.left_out);
         }
     }
 

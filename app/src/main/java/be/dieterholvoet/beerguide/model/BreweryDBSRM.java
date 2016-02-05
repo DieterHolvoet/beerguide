@@ -1,17 +1,28 @@
 package be.dieterholvoet.beerguide.model;
 
-import com.orm.SugarRecord;
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
 
 import java.io.Serializable;
 
 /**
  * Created by Dieter on 11/01/2016.
  */
-public class BreweryDBSRM extends SugarRecord implements Serializable {
+
+@Table(name = "BreweryDBSRMs")
+public class BreweryDBSRM extends Model implements Serializable {
+    @Column(name = "name")
     String name;
+
+    @Column(name = "hex")
     String hex;
 
+    @Column(name = "BreweryDBBeer", onDelete = Column.ForeignKeyAction.CASCADE)
+    BreweryDBBeer bdbBeer;
+
     public BreweryDBSRM() {
+        super();
     }
 
     public String getHex() {
@@ -28,5 +39,13 @@ public class BreweryDBSRM extends SugarRecord implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public BreweryDBBeer getBdbBeer() {
+        return bdbBeer;
+    }
+
+    public void setBdbBeer(BreweryDBBeer bdbBeer) {
+        this.bdbBeer = bdbBeer;
     }
 }

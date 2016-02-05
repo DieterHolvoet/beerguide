@@ -4,11 +4,10 @@ import android.database.MatrixCursor;
 import android.os.AsyncTask;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.widget.SearchView;
-import android.util.Log;
 
 import java.util.List;
 
-import be.dieterholvoet.beerguide.model.BreweryDBResultBeer;
+import be.dieterholvoet.beerguide.rest.model.BreweryDBResultBeer;
 import be.dieterholvoet.beerguide.rest.BreweryDB;
 
 /**

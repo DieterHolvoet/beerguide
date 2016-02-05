@@ -6,6 +6,7 @@ import android.util.Log;
 
 import be.dieterholvoet.beerguide.bus.BeerLookupTaskEvent;
 import be.dieterholvoet.beerguide.bus.EventBus;
+import be.dieterholvoet.beerguide.db.BeerDAO;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.rest.BreweryDB;
 
@@ -25,7 +26,7 @@ public class BeerLookupTask extends AsyncTask<Void, Void, Void> {
     @Override
     protected Void doInBackground(Void... params) {
         if(BreweryDB.isNetworkAvailable(context)) {
-            beer = Beer.getBreweryDBData(beer);
+            beer = BreweryDB.getInstance().getBreweryDBData(beer);
 
         } else {
             Log.e("LOOKUPTASK", "Network not available");

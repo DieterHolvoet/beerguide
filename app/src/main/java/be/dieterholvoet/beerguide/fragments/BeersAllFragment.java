@@ -4,7 +4,6 @@ package be.dieterholvoet.beerguide.fragments;
  * Created by Dieter on 26/12/2015.
  */
 
-import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -23,12 +22,13 @@ import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
 
-import be.dieterholvoet.beerguide.BeerCardCallback;
+import be.dieterholvoet.beerguide.SimpleItemTouchHelperCallback;
 import be.dieterholvoet.beerguide.R;
 import be.dieterholvoet.beerguide.adapters.BeerListAdapter;
+import be.dieterholvoet.beerguide.bus.BeerListTaskEvent;
 import be.dieterholvoet.beerguide.bus.EventBus;
 import be.dieterholvoet.beerguide.bus.RecentBeerListTaskEvent;
-import be.dieterholvoet.beerguide.tasks.RecentBeerListTask;
+import be.dieterholvoet.beerguide.tasks.BeerListTask;
 
 public class BeersAllFragment extends Fragment {
     View view;
@@ -80,7 +80,7 @@ public class BeersAllFragment extends Fragment {
             @Override
             public void onRefresh() {
                 Log.e("LOG", "Refreshing...");
-                new RecentBeerListTask(getActivity()).execute();
+                new BeerListTask(getActivity()).execute();
             }
         });
 
@@ -92,15 +92,17 @@ public class BeersAllFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         snackbar = Snackbar.make(getView(), getResources().getString(R.string.dialog_loading_beers), Snackbar.LENGTH_INDEFINITE);
         snackbar.show();
-        new RecentBeerListTask(getActivity()).execute();
+        new BeerListTask(getActivity()).execute();
     }
 
     @Subscribe
-    public void onRecentBeerListTaskResult(RecentBeerListTaskEvent event) {
-        recycler.setAdapter(new BeerListAdapter(event.getBeers(), getActivity()));
-        snackbar.dismiss();
+    public void onBeerListTaskResult(final BeerListTaskEvent event) {
+        BeerListAdapter adapter = new BeerListAdapter(event.getBeers(), getActivity());
+        ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(recycler, adapter);
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
 
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new BeerCardCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT, recycler));
+        snackbar.dismiss();
+        recycler.setAdapter(adapter);
         itemTouchHelper.attachToRecyclerView(recycler);
 
         if(swipeRefreshLayout.isRefreshing()) {

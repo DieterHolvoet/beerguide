@@ -1,4 +1,4 @@
-package be.dieterholvoet.beerguide.model;
+package be.dieterholvoet.beerguide.rest.model;
 
 import java.util.List;
 

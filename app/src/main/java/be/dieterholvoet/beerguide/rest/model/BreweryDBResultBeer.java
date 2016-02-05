@@ -1,6 +1,10 @@
-package be.dieterholvoet.beerguide.model;
+package be.dieterholvoet.beerguide.rest.model;
 
-import com.google.gson.annotations.SerializedName;
+import be.dieterholvoet.beerguide.model.BreweryDBAvailability;
+import be.dieterholvoet.beerguide.model.BreweryDBBrewery;
+import be.dieterholvoet.beerguide.model.BreweryDBLabel;
+import be.dieterholvoet.beerguide.model.BreweryDBSRM;
+import be.dieterholvoet.beerguide.model.BreweryDBStyle;
 
 /**
  * Created by Dieter on 9/01/2016.

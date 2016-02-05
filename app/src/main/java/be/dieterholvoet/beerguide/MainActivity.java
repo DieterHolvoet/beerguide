@@ -134,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
         adapter.addFrag(new BeersFavoritesFragment(), getResources().getString(R.string.tab_favorites));
         adapter.addFrag(new BeersMoreFragment(), getResources().getString(R.string.tab_more));
 
+        viewPager.setOffscreenPageLimit(3);
         viewPager.setAdapter(adapter);
     }
 

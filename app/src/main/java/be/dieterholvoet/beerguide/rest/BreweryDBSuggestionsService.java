@@ -2,10 +2,9 @@ package be.dieterholvoet.beerguide.rest;
 
 import java.util.Map;
 
-import be.dieterholvoet.beerguide.model.BreweryDBResponseBrewery;
-import be.dieterholvoet.beerguide.model.BreweryDBResponseLookup;
-import be.dieterholvoet.beerguide.model.BreweryDBResponseSearch;
-import be.dieterholvoet.beerguide.model.BreweryDBResultBeer;
+import be.dieterholvoet.beerguide.rest.model.BreweryDBResponseBrewery;
+import be.dieterholvoet.beerguide.rest.model.BreweryDBResponseLookup;
+import be.dieterholvoet.beerguide.rest.model.BreweryDBResponseSearch;
 import retrofit.Call;
 import retrofit.http.GET;
 import retrofit.http.Path;

@@ -5,7 +5,6 @@ import android.database.MatrixCursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
-import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,18 +14,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import be.dieterholvoet.beerguide.bus.EndPointAvailableEvent;
-import be.dieterholvoet.beerguide.bus.EventBus;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.model.BreweryDBBeer;
 import be.dieterholvoet.beerguide.model.BreweryDBBrewery;
-import be.dieterholvoet.beerguide.model.BreweryDBResponseBrewery;
-import be.dieterholvoet.beerguide.model.BreweryDBResponseLookup;
-import be.dieterholvoet.beerguide.model.BreweryDBResultBeer;
-import be.dieterholvoet.beerguide.model.BreweryDBResponseSearch;
+import be.dieterholvoet.beerguide.rest.model.BreweryDBResponseBrewery;
+import be.dieterholvoet.beerguide.rest.model.BreweryDBResponseLookup;
+import be.dieterholvoet.beerguide.rest.model.BreweryDBResultBeer;
+import be.dieterholvoet.beerguide.rest.model.BreweryDBResponseSearch;
 import be.dieterholvoet.beerguide.tasks.EndpointAvailabilityCheckTask;
 import retrofit.Call;
-import retrofit.Callback;
 import retrofit.GsonConverterFactory;
 import retrofit.Response;
 import retrofit.Retrofit;
@@ -88,7 +84,6 @@ public class BreweryDB {
     public BreweryDBBeer getBeerByID(String beerID) {
         HashMap queryMap = new HashMap();
         queryMap.put("key", API_KEY);
-
         Call call = searchService.getBeerByID(beerID, queryMap);
         BreweryDBResponseLookup data = (BreweryDBResponseLookup) executeAndTestResponse(call);
 
@@ -113,6 +108,34 @@ public class BreweryDB {
         } else {
             return new BreweryDBBrewery(data.getData());
         }
+    }
+
+    public Beer getBreweryDBData(Beer beer) {
+        BreweryDBBeer bdb = beer.getBdb();
+        if(bdb == null) {
+            Log.e("LOG", "Can't get bdb data, bdb is null!");
+            return beer;
+
+        } else {
+            if(bdb.getDescription() == null) {
+                if(bdb.getBreweryDBID() == null) {
+                    Log.e("API", "No BreweryDB ID provided.");
+
+                } else {
+                    Log.e("ERROR", "BEER ID: " + bdb.getBreweryDBID());
+                    beer.setBdb(getBeerByID(bdb.getBreweryDBID()));
+                }
+            }
+
+            return beer;
+        }
+    }
+
+    public List<Beer> getBreweryDBData(List<Beer> beers) {
+        for(int i = 0; i < beers.size(); i++) {
+            beers.set(i, getBreweryDBData(beers.get(i)));
+        }
+        return beers;
     }
 
     private Object executeAndTestResponse(Call call) {

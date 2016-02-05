@@ -6,11 +6,14 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.Toast;
@@ -18,6 +21,7 @@ import android.widget.Toast;
 import be.dieterholvoet.beerguide.MainActivity;
 import be.dieterholvoet.beerguide.NewBeerActivity;
 import be.dieterholvoet.beerguide.R;
+import be.dieterholvoet.beerguide.db.BeerDAO;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.model.BeerRating;
 
@@ -29,6 +33,7 @@ public class NewBeerRatingFragment extends Fragment {
     NewBeerActivity activity;
     CardView button;
     RatingBar overallRating;
+    EditText notes;
     Beer beer;
     Drawable starDrawable;
     View view;
@@ -47,9 +52,11 @@ public class NewBeerRatingFragment extends Fragment {
         this.activity = (NewBeerActivity) getActivity();
         this.beer = activity.getBeer();
         this.overallRating = (RatingBar) view.findViewById(R.id.overall_rating_card_rating);
+        this.notes = (EditText) view.findViewById((R.id.beer_info_notes));
         this.button = (CardView) view.findViewById(R.id.overall_rating_card_submit);
 
         this.overallRating.setRating(beer.getRating().getRating());
+        this.notes.setText(beer.getNotes());
 
         switch(getResources().getConfiguration().orientation) {
             // Portrait
@@ -72,7 +79,7 @@ public class NewBeerRatingFragment extends Fragment {
                     Toast.makeText(getActivity(), getResources().getString(R.string.dialog_overall_rating_before_save), Toast.LENGTH_SHORT).show();
 
                 } else {
-                    beer.save();
+                    BeerDAO.save(beer);
                     startActivity(new Intent(getActivity(), MainActivity.class));
                     activity.finish();
                 }
@@ -85,6 +92,23 @@ public class NewBeerRatingFragment extends Fragment {
                 BeerRating beerRating = beer.getRating();
                 beerRating.setRating(ratingBar.getRating());
                 beer.setRating(beerRating);
+            }
+        });
+
+        notes.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                beer.setNotes(s.toString());
             }
         });
 

@@ -1,23 +1,40 @@
 package be.dieterholvoet.beerguide.model;
 
-import com.orm.SugarRecord;
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
 
 import java.io.Serializable;
+
+import be.dieterholvoet.beerguide.rest.model.BreweryDBResultBrewery;
 
 /**
  * Created by Dieter on 11/01/2016.
  */
-public class BreweryDBBrewery extends SugarRecord implements Serializable {
+
+@Table(name = "BreweryDBBreweries")
+public class BreweryDBBrewery extends Model implements Serializable {
+    @Column(name = "BreweryDBBreweryID")
     private String BreweryDBBreweryID;
+
+    @Column(name = "descriptions")
     private String descriptions;
+
+    @Column(name = "name")
     private String name;
+
+    @Column(name = "established")
     private int established;
+
+    @Column(name = "website")
     private String website;
 
     public BreweryDBBrewery() {
+        super();
     }
 
     public BreweryDBBrewery(BreweryDBResultBrewery brewery) {
+        super();
         this.BreweryDBBreweryID = brewery.getId();
         this.descriptions = brewery.getDescriptions();
         this.name = brewery.getName();

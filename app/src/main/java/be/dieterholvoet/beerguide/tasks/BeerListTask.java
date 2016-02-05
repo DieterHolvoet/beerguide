@@ -8,6 +8,7 @@ import java.util.List;
 
 import be.dieterholvoet.beerguide.bus.BeerListTaskEvent;
 import be.dieterholvoet.beerguide.bus.EventBus;
+import be.dieterholvoet.beerguide.db.BeerDAO;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.model.BreweryDBBeer;
 import be.dieterholvoet.beerguide.rest.BreweryDB;
@@ -15,6 +16,7 @@ import be.dieterholvoet.beerguide.rest.BreweryDB;
 /**
  * Created by Dieter on 9/01/2016.
  */
+
 public class BeerListTask extends AsyncTask<Void, Void, List<Beer>> {
     Context context;
 
@@ -24,9 +26,9 @@ public class BeerListTask extends AsyncTask<Void, Void, List<Beer>> {
 
     @Override
     protected List<Beer> doInBackground(Void... params) {
-        List<Beer> beers = Beer.getAll();
-        if(BreweryDB.isNetworkAvailable(context)) {
-            beers = Beer.getBreweryDBData(beers);
+        List<Beer> beers = BeerDAO.getAll();
+        if(BreweryDB.isNetworkAvailable(context) && beers != null && beers.size() > 0) {
+            beers = BreweryDB.getInstance().getBreweryDBData(beers);
         }
         return beers;
     }

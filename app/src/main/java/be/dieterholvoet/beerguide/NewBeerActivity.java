@@ -1,13 +1,20 @@
 package be.dieterholvoet.beerguide;
 
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
+import android.view.WindowManager;
 
 import be.dieterholvoet.beerguide.adapters.ViewPagerAdapter;
+import be.dieterholvoet.beerguide.db.BeerDAO;
 import be.dieterholvoet.beerguide.fragments.NewBeerAppearanceFragment;
 import be.dieterholvoet.beerguide.fragments.NewBeerInfoFragment;
 import be.dieterholvoet.beerguide.fragments.NewBeerRatingFragment;
@@ -25,6 +32,8 @@ public class NewBeerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // setContentView
         setContentView(R.layout.activity_new_beer);
 
         // Get data from savedInstanceState
@@ -35,8 +44,22 @@ public class NewBeerActivity extends AppCompatActivity {
         // Get data from intent
         Bundle b = getIntent().getExtras();
         if(b != null) {
-            beer = (Beer) b.getSerializable("currentBeer");
-            setTitle(beer.getBdb().getName());
+            BreweryDBBeer bdb = new BreweryDBBeer();
+            bdb.setBreweryDBID(b.getString("bdbID"));
+            bdb.setName(b.getString("beerName"));
+            beer.setBdb(bdb);
+
+            setTitle(b.getString("beerName"));
+        }
+
+        // Get data from database
+        Beer dbBeer = BeerDAO.getByBreweryDBID(beer.getBdb().getBreweryDBID());
+
+        if(dbBeer == null) {
+            Log.e("BEER", "Beer not yet in database");
+
+        } else {
+            beer = dbBeer;
         }
 
         // Test data
@@ -60,6 +83,27 @@ public class NewBeerActivity extends AppCompatActivity {
         initializeToolbar();
         initializeViewPager();
         initializeTabLayout();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        startActivity(new Intent(this, MainActivity.class));
+
+        // This makes the new screen slide up as it fades in
+        // while the current screen slides up as it fades out.
+        overridePendingTransition(R.anim.right_in, R.anim.right_out);
     }
 
     @Override

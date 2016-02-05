@@ -1,8 +1,11 @@
 package be.dieterholvoet.beerguide.model;
 
+import be.dieterholvoet.beerguide.R;
+
 /**
  * Created by Dieter on 30/12/2015.
  */
+
 public class RatingElement {
     private String title;
     private String description;

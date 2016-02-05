@@ -1,40 +1,64 @@
 package be.dieterholvoet.beerguide.model;
 
-import com.orm.SugarRecord;
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
 
 import java.io.Serializable;
+
+import be.dieterholvoet.beerguide.rest.model.BreweryDBResultBeer;
 
 /**
  * Created by Dieter on 29/12/2015.
  */
 
-public class BreweryDBBeer extends SugarRecord implements Serializable {
+@Table(name = "BreweryDBBeers")
+public class BreweryDBBeer extends Model implements Serializable {
+    @Column(name = "BreweryDBID")
     private String BreweryDBID;
+
+    @Column(name = "name")
     private String name;
+
+    @Column(name = "year")
     private String year;
+
+    @Column(name = "labels", onUpdate = Column.ForeignKeyAction.CASCADE, onDelete = Column.ForeignKeyAction.CASCADE)
     BreweryDBLabel labels;
+
+    @Column(name = "style", onUpdate = Column.ForeignKeyAction.CASCADE)
     BreweryDBStyle style;
+
+    @Column(name = "availability", onUpdate = Column.ForeignKeyAction.CASCADE, onDelete = Column.ForeignKeyAction.CASCADE)
     BreweryDBAvailability availability;
+
+    @Column(name = "srm", onUpdate = Column.ForeignKeyAction.CASCADE, onDelete = Column.ForeignKeyAction.CASCADE)
     BreweryDBSRM srm;
+
+    @Column(name = "brewery", onUpdate = Column.ForeignKeyAction.CASCADE)
     BreweryDBBrewery brewery;
+
+    @Column(name = "abv")
     String abv;
+
+    @Column(name = "ibu")
     String ibu;
+
+    @Column(name = "og")
     String og;
+
+    @Column(name = "description")
     String description;
 
-    public BreweryDBBeer() {
-        this.labels = new BreweryDBLabel();
-        this.style = new BreweryDBStyle();
-    }
+    @Column(name = "Beer", onDelete = Column.ForeignKeyAction.CASCADE)
+    private Beer beer;
 
-    public BreweryDBBeer(String BreweryDBID, String name) {
-        this.BreweryDBID = BreweryDBID;
-        this.name = name;
-        this.labels = new BreweryDBLabel();
-        this.style = new BreweryDBStyle();
+    public BreweryDBBeer() {
+        super();
     }
 
     public BreweryDBBeer(BreweryDBResultBeer result) {
+        super();
         this.BreweryDBID = result.getId();
         this.name = result.getName();
         this.year = result.getYear();
@@ -148,5 +172,13 @@ public class BreweryDBBeer extends SugarRecord implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Beer getBeer() {
+        return beer;
+    }
+
+    public void setBeer(Beer beer) {
+        this.beer = beer;
     }
 }

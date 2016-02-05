@@ -4,7 +4,6 @@ package be.dieterholvoet.beerguide.fragments;
  * Created by Dieter on 26/12/2015.
  */
 
-import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -23,7 +22,7 @@ import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
 
-import be.dieterholvoet.beerguide.BeerCardCallback;
+import be.dieterholvoet.beerguide.SimpleItemTouchHelperCallback;
 import be.dieterholvoet.beerguide.R;
 import be.dieterholvoet.beerguide.adapters.BeerListAdapter;
 import be.dieterholvoet.beerguide.bus.EventBus;
@@ -97,10 +96,12 @@ public class BeersRecentFragment extends Fragment {
 
     @Subscribe
     public void onRecentBeerListTaskResult(RecentBeerListTaskEvent event) {
-        recycler.setAdapter(new BeerListAdapter(event.getBeers(), getActivity()));
-        snackbar.dismiss();
+        BeerListAdapter adapter = new BeerListAdapter(event.getBeers(), getActivity());
+        ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(recycler, adapter);
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
 
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new BeerCardCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT, recycler));
+        snackbar.dismiss();
+        recycler.setAdapter(adapter);
         itemTouchHelper.attachToRecyclerView(recycler);
 
         if(swipeRefreshLayout.isRefreshing()) {

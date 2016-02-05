@@ -1,6 +1,7 @@
 package be.dieterholvoet.beerguide.adapters;
 
 import android.app.Activity;
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import be.dieterholvoet.beerguide.Helper;
 import be.dieterholvoet.beerguide.NewBeerActivity;
 import be.dieterholvoet.beerguide.R;
 import be.dieterholvoet.beerguide.model.Beer;
@@ -59,6 +61,7 @@ public class RatingAdapter extends RecyclerView.Adapter<RatingAdapter.RatingView
                 beer_rating.setFoam(rating);
                 beer.setRating(beer_rating);
                 activity.setBeer(beer);
+                Log.e("DEBUG", "Foam = " + rating);
             }
 
             @Override
@@ -121,9 +124,11 @@ public class RatingAdapter extends RecyclerView.Adapter<RatingAdapter.RatingView
         protected ImageView banner;
         protected RatingBar rating;
         protected ViewHolderRatingChanges listener;
+        protected View v;
 
         public RatingViewHolder(View v, ViewHolderRatingChanges listener) {
             super(v);
+            this.v = v;
             this.listener = listener;
             this.title =  (TextView) v.findViewById(R.id.rating_card_title);
             this.description = (TextView)  v.findViewById(R.id.rating_card_description);
@@ -137,39 +142,29 @@ public class RatingAdapter extends RecyclerView.Adapter<RatingAdapter.RatingView
         public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
             RatingViewHolder viewHolder = (RatingViewHolder) ratingBar.getTag();
             int rating_num = Math.round(ratingBar.getRating());
-            
+            String t = viewHolder.title.getText().toString();
+
             if(rating != 0) {
-                switch(viewHolder.title.getText().toString()) {
-                    case "Foam":
-                        listener.onAppearanceFoamRatingChange(rating_num);
-                        break;
+                if(t.equals(v.getResources().getString(R.string.beer_foam))) {
+                    listener.onAppearanceFoamRatingChange(rating_num);
 
-                    case "Color":
-                        listener.onAppearanceColorRatingChange(rating_num);
-                        break;
+                } else if(t.equals(v.getResources().getString(R.string.beer_color))) {
+                    listener.onAppearanceColorRatingChange(rating_num);
 
-                    case "Clearness":
-                        listener.onAppearanceClearnessRatingChange(rating_num);
-                        break;
+                } else if(t.equals(v.getResources().getString(R.string.beer_clearness))) {
+                    listener.onAppearanceClearnessRatingChange(rating_num);
 
-                    case "Sweet":
-                        listener.onTasteSweetnessRatingChange(rating_num);
-                        break;
+                } else if(t.equals(v.getResources().getString(R.string.beer_sweetness))) {
+                    listener.onTasteSweetnessRatingChange(rating_num);
 
-                    case "Sour":
-                        listener.onTasteSournessRatingChange(rating_num);
-                        break;
+                } else if(t.equals(v.getResources().getString(R.string.beer_sourness))) {
+                    listener.onTasteSournessRatingChange(rating_num);
 
-                    case "Bitter":
-                        listener.onTasteBitternessRatingChange(rating_num);
-                        break;
+                } else if(t.equals(v.getResources().getString(R.string.beer_bitterness))) {
+                    listener.onTasteBitternessRatingChange(rating_num);
 
-                    case "Full":
-                        listener.onTasteFullnessRatingChange(rating_num);
-                        break;
-
-                    default:
-                        break;
+                } else if(t.equals(v.getResources().getString(R.string.beer_fullness))) {
+                    listener.onTasteFullnessRatingChange(rating_num);
                 }
             }
         }

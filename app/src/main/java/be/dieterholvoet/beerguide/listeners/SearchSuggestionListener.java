@@ -35,7 +35,8 @@ public class SearchSuggestionListener implements SearchView.OnSuggestionListener
         Cursor cursor = (Cursor) view.getSuggestionsAdapter().getItem(position);
         Intent intent = new Intent(context, NewBeerActivity.class);
         Bundle b = new Bundle();
-        b.putSerializable("currentBeer", new Beer(new BreweryDBBeer(cursor.getString(2), cursor.getString(1))));
+        b.putString("beerName", cursor.getString(1));
+        b.putString("bdbID", cursor.getString(2));
         intent.putExtras(b);
         context.startActivity(intent);
         context.finish();

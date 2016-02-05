@@ -1,4 +1,4 @@
-package be.dieterholvoet.beerguide.model;
+package be.dieterholvoet.beerguide.rest.model;
 
 /**
  * Created by Dieter on 30/12/2015.

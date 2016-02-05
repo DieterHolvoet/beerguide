@@ -25,6 +25,7 @@ import be.dieterholvoet.beerguide.adapters.RatingAdapter;
 import be.dieterholvoet.beerguide.bus.BeerLookupTaskEvent;
 import be.dieterholvoet.beerguide.bus.EndPointAvailableEvent;
 import be.dieterholvoet.beerguide.bus.EventBus;
+import be.dieterholvoet.beerguide.db.BeerDAO;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.model.BeerRating;
 import be.dieterholvoet.beerguide.model.BreweryDBBeer;
@@ -154,8 +155,6 @@ public class NewBeerInfoFragment extends Fragment {
                         .centerCrop()
                         .into(img);
             }
-
-            Log.e("INFOFRAGMENT", "ABV: " + bdb.getAbv());
 
             this.name.setText(bdb.getName() == null ? PLACEHOLDER : bdb.getName());
             this.abv.setText(bdb.getAbv() == null ? PLACEHOLDER : bdb.getAbv() + "%");

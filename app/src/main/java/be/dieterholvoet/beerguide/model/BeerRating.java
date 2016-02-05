@@ -1,6 +1,8 @@
 package be.dieterholvoet.beerguide.model;
 
-import com.orm.SugarRecord;
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
 
 import java.io.Serializable;
 
@@ -8,17 +10,37 @@ import java.io.Serializable;
  * Created by Dieter on 8/01/2016.
  */
 
-public class BeerRating extends SugarRecord implements Serializable {
+@Table(name = "Ratings")
+public class BeerRating extends Model implements Serializable {
+    @Column(name = "foam")
     private int foam;
+
+    @Column(name = "color")
     private int color;
+
+    @Column(name = "clarity")
     private int clarity;
+
+    @Column(name = "sweetness")
     private int sweetness;
+
+    @Column(name = "sourness")
     private int sourness;
+
+    @Column(name = "bitterness")
     private int bitterness;
+
+    @Column(name = "fullness")
     private int fullness;
+
+    @Column(name = "rating")
     private float rating;
 
+    @Column(name = "Beer", onDelete = Column.ForeignKeyAction.CASCADE)
+    private Beer beer;
+
     public BeerRating() {
+        super();
     }
 
     public int getBitterness() {
@@ -83,5 +105,13 @@ public class BeerRating extends SugarRecord implements Serializable {
 
     public void setSweetness(int sweetness) {
         this.sweetness = sweetness;
+    }
+
+    public Beer getBeer() {
+        return beer;
+    }
+
+    public void setBeer(Beer beer) {
+        this.beer = beer;
     }
 }
