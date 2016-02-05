@@ -1,35 +1,39 @@
 package be.dieterholvoet.beerguide.fragments;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.getbase.floatingactionbutton.FloatingActionsMenu;
+import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import be.dieterholvoet.beerguide.NewBeerActivity;
 import be.dieterholvoet.beerguide.R;
-import be.dieterholvoet.beerguide.adapters.RatingAdapter;
 import be.dieterholvoet.beerguide.bus.BeerLookupTaskEvent;
 import be.dieterholvoet.beerguide.bus.EndPointAvailableEvent;
 import be.dieterholvoet.beerguide.bus.EventBus;
-import be.dieterholvoet.beerguide.db.BeerDAO;
+import be.dieterholvoet.beerguide.helper.Helper;
+import be.dieterholvoet.beerguide.helper.ImageStore;
 import be.dieterholvoet.beerguide.model.Beer;
-import be.dieterholvoet.beerguide.model.BeerRating;
 import be.dieterholvoet.beerguide.model.BreweryDBBeer;
-import be.dieterholvoet.beerguide.model.RatingElement;
 import be.dieterholvoet.beerguide.rest.BreweryDB;
 import be.dieterholvoet.beerguide.tasks.BeerLookupTask;
 
@@ -38,8 +42,14 @@ import be.dieterholvoet.beerguide.tasks.BeerLookupTask;
  */
 public class NewBeerInfoFragment extends Fragment {
     NewBeerActivity activity;
-    Beer beer;
+    PackageManager pm;
     View view;
+
+    FloatingActionsMenu menuMultipleActions;
+    FloatingActionButton cameraFAB;
+    FloatingActionButton galleryFAB;
+
+    Beer beer;
 
     TextView name;
     TextView abv;
@@ -61,6 +71,7 @@ public class NewBeerInfoFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         this.activity = (NewBeerActivity) getActivity();
+        this.pm = getContext().getPackageManager();
         this.beer = activity.getBeer();
         this.view = inflater.inflate(R.layout.fragment_new_beer_info, null);
 
@@ -75,6 +86,7 @@ public class NewBeerInfoFragment extends Fragment {
 
         this.img = (ImageView) view.findViewById(R.id.beer_info_img);
 
+        initializeFAB();
         loadText();
 
         switch(getResources().getConfiguration().orientation) {
@@ -162,6 +174,48 @@ public class NewBeerInfoFragment extends Fragment {
             this.og.setText(bdb.getOg() == null ? PLACEHOLDER : bdb.getOg());
             this.description.setText(bdb.getDescription() == null ? PLACEHOLDER : bdb.getDescription());
         }
+    }
+
+    private void initializeFAB() {
+
+        if(this.pm.hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+            this.cameraFAB = new FloatingActionButton(getContext());
+            this.cameraFAB.setImageResource(R.drawable.camera);
+            this.cameraFAB.setColorNormalResId(R.color.colorPrimary);
+            this.cameraFAB.setColorPressedResId(R.color.colorPrimary);
+            this.cameraFAB.setTitle("Nieuwe foto nemen");
+            this.cameraFAB.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(getContext(), "Camera FAB", Toast.LENGTH_SHORT).show();
+
+                    if(Helper.isExternalStoragePresent()) {
+                        ImageStore image = new ImageStore(getActivity());
+                        image.dispatchTakePictureIntent();
+                        image.addToGallery();
+
+                    } else {
+                        Toast.makeText(getContext(), "External storage not available.", Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+        }
+
+        this.galleryFAB = new FloatingActionButton(getContext());
+        this.galleryFAB.setImageResource(R.drawable.folder);
+        this.galleryFAB.setColorNormalResId(R.color.colorPrimary);
+        this.galleryFAB.setColorPressedResId(R.color.colorPrimary);
+        this.galleryFAB.setTitle("Importeren uit galerij");
+        this.galleryFAB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getContext(), "Gallery FAB", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        this.menuMultipleActions = (FloatingActionsMenu) view.findViewById(R.id.beer_info_fab_menu);
+        this.menuMultipleActions.addButton(cameraFAB);
+        this.menuMultipleActions.addButton(galleryFAB);
     }
 
     @Subscribe

@@ -1,7 +1,6 @@
 package be.dieterholvoet.beerguide.adapters;
 
 import android.app.Activity;
-import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,7 +12,6 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import be.dieterholvoet.beerguide.Helper;
 import be.dieterholvoet.beerguide.NewBeerActivity;
 import be.dieterholvoet.beerguide.R;
 import be.dieterholvoet.beerguide.model.Beer;

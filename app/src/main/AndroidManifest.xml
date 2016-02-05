@@ -4,6 +4,10 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -29,8 +33,7 @@
             android:name="be.dieterholvoet.beerguide.NewBeerActivity"
             android:parentActivityName="be.dieterholvoet.beerguide.MainActivity"
             android:theme="@style/AppTheme.NoActionBar"
-            android:windowSoftInputMode="adjustResize"
-            android:noHistory="true" >
+            android:windowSoftInputMode="adjustResize" >
         </activity>
 
         <meta-data android:name="AA_DB_NAME" android:value="Beers.db" />
