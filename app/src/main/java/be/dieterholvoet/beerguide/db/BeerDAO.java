@@ -3,6 +3,7 @@ package be.dieterholvoet.beerguide.db;
 import android.util.Log;
 
 import com.activeandroid.ActiveAndroid;
+import com.activeandroid.query.Delete;
 import com.activeandroid.query.Select;
 
 import java.text.SimpleDateFormat;
@@ -10,6 +11,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
 
+import be.dieterholvoet.beerguide.helper.ImageStore;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.model.BreweryDBBeer;
 import be.dieterholvoet.beerguide.rest.BreweryDB;
@@ -82,11 +84,15 @@ public class BeerDAO {
                 beer.getBdb().getSrm().delete();
             }
 
+            if(beer.getPictures() != null) {
+                // beer.getPictures().delete();
+                // new Delete().from(ImageStore.class).where("Id = ?", beer.)
+            }
+
             beer.getBdb().delete();
         }
 
         beer.delete();
-        ActiveAndroid.clearCache();
         Log.e("BEER", "Beer deleted");
     }
 
@@ -96,12 +102,7 @@ public class BeerDAO {
             Log.e("BEER", "Saving new beer!");
 
         } else {
-            //beer.delete();
             Log.e("BEER", "Updating beer: " + beer.getBdb().getName());
-
-            // Dirty fix for duplicates
-            // Beer.executeQuery("DELETE FROM BEER WHERE ADDED = ?", new String[]{String.valueOf(this.getAdded())});
-
         }
 
         if(beer.getBdb() == null) {
@@ -161,5 +162,19 @@ public class BeerDAO {
         }
 
         beer.save();
+
+        if(beer.getPictures() != null && !beer.getPictures().isEmpty()) {
+            Log.e("BEER", "Saving pictures!");
+            for(ImageStore picture : beer.getPictures()) {
+                picture.setBeer(beer);
+                picture.save();
+
+                Log.e("LOG", "Picture found, beer id = " + picture.getBeer().getId() + ". Actual id = " + beer.getId());
+            }
+
+        } else {
+            Log.e("BEER", "No pictures to save!");
+        }
     }
+
 }

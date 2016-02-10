@@ -1,13 +1,21 @@
 package be.dieterholvoet.beerguide.model;
 
+import android.app.Activity;
+import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
+import com.activeandroid.query.Select;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
+
+import be.dieterholvoet.beerguide.helper.ImageStore;
 
 /**
  * Created by Dieter on 26/12/2015.
@@ -30,16 +38,20 @@ public class Beer extends Model implements Serializable {
     @Column(name = "notes")
     private String notes;
 
+    private List<ImageStore> pictures;
+
     public Beer() {
         super();
         this.rating = new BeerRating();
         this.bdb = new BreweryDBBeer();
+        this.pictures = new ArrayList<>();
     }
 
     public Beer(BreweryDBBeer bdb) {
         super();
         this.rating = new BeerRating();
         this.bdb = bdb;
+        this.pictures = new ArrayList<>();
     }
 
     public long getTimestamp() {
@@ -82,6 +94,31 @@ public class Beer extends Model implements Serializable {
         this.notes = notes;
     }
 
+    public List<ImageStore> getPicturesFromDB() {
+        return new Select()
+                .from(ImageStore.class)
+                .where("beer = ?", this.getId())
+                .execute();
+        // return getMany(ImageStore.class, "beerFK");
+    }
+
+    public void setPicturesFromDB() {
+        pictures = getPicturesFromDB();
+    }
+
+    public void addPicture(Uri uri, Activity context) {
+        addPicture(new ImageStore(uri.toString(), this));
+    }
+
+    public void addPicture(ImageStore image) {
+        image.setBeer(this);
+        pictures.add(image);
+    }
+
+    public List<ImageStore> getPictures() {
+        return pictures;
+    }
+
     public void log() {
         Log.e("BEER", "Timestamp is " + this.timestamp == null ? "null" : String.valueOf(timestamp));
         Log.e("BEER", "Favorite " + this.favorite == null ? "null" : "not null");
@@ -91,5 +128,9 @@ public class Beer extends Model implements Serializable {
         if(this.bdb != null) {
             Log.e("BEER", "Description is " + this.bdb.getDescription() == null ? "null" : this.bdb.getDescription());
         }
+    }
+
+    public boolean exists() {
+        return this.getId() != null;
     }
 }

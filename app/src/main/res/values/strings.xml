@@ -56,5 +56,6 @@
     <string name="beer_fullness">Fullness</string>
     <string name="beer_fullness_desc">How full is the taste of the beer?</string>
     <string name="beer_overall_rating">Overall rating</string>
+    <string name="title_pictures">Pictures</string>
 
 </resources>

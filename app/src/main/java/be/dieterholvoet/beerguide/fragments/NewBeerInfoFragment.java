@@ -3,10 +3,11 @@ package be.dieterholvoet.beerguide.fragments;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,21 +16,22 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.activeandroid.query.Select;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Picasso;
 
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 import be.dieterholvoet.beerguide.NewBeerActivity;
 import be.dieterholvoet.beerguide.R;
+import be.dieterholvoet.beerguide.adapters.BeerPictureAdapter;
 import be.dieterholvoet.beerguide.bus.BeerLookupTaskEvent;
 import be.dieterholvoet.beerguide.bus.EndPointAvailableEvent;
 import be.dieterholvoet.beerguide.bus.EventBus;
+import be.dieterholvoet.beerguide.db.BeerDAO;
 import be.dieterholvoet.beerguide.helper.Helper;
 import be.dieterholvoet.beerguide.helper.ImageStore;
 import be.dieterholvoet.beerguide.model.Beer;
@@ -40,16 +42,16 @@ import be.dieterholvoet.beerguide.tasks.BeerLookupTask;
 /**
  * Created by Dieter on 26/12/2015.
  */
+
 public class NewBeerInfoFragment extends Fragment {
     NewBeerActivity activity;
     PackageManager pm;
     View view;
+    Beer beer;
 
     FloatingActionsMenu menuMultipleActions;
     FloatingActionButton cameraFAB;
     FloatingActionButton galleryFAB;
-
-    Beer beer;
 
     TextView name;
     TextView abv;
@@ -61,6 +63,7 @@ public class NewBeerInfoFragment extends Fragment {
     TextView description;
 
     ImageView img;
+    RecyclerView recycler;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -70,10 +73,10 @@ public class NewBeerInfoFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        this.view = inflater.inflate(R.layout.fragment_new_beer_info, null);
         this.activity = (NewBeerActivity) getActivity();
         this.pm = getContext().getPackageManager();
         this.beer = activity.getBeer();
-        this.view = inflater.inflate(R.layout.fragment_new_beer_info, null);
 
         this.name = (TextView) view.findViewById(R.id.beer_info_name);
         this.abv = (TextView) view.findViewById(R.id.beer_info_abv_value);
@@ -87,6 +90,7 @@ public class NewBeerInfoFragment extends Fragment {
         this.img = (ImageView) view.findViewById(R.id.beer_info_img);
 
         initializeFAB();
+        initializeRecyclerView();
         loadText();
 
         switch(getResources().getConfiguration().orientation) {
@@ -99,7 +103,7 @@ public class NewBeerInfoFragment extends Fragment {
                 break;
         }
 
-        return view;
+        return this.view;
     }
 
     @Override
@@ -187,12 +191,11 @@ public class NewBeerInfoFragment extends Fragment {
             this.cameraFAB.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(getContext(), "Camera FAB", Toast.LENGTH_SHORT).show();
-
-                    if(Helper.isExternalStoragePresent()) {
-                        ImageStore image = new ImageStore(getActivity());
-                        image.dispatchTakePictureIntent();
-                        image.addToGallery();
+                    if (Helper.isExternalStoragePresent()) {
+                        ImageStore image = new ImageStore();
+                        beer.addPicture(image.dispatchTakePictureIntent(activity), getActivity());
+                        activity.setBeer(beer);
+                        image.addToGallery(activity);
 
                     } else {
                         Toast.makeText(getContext(), "External storage not available.", Toast.LENGTH_LONG).show();
@@ -216,6 +219,23 @@ public class NewBeerInfoFragment extends Fragment {
         this.menuMultipleActions = (FloatingActionsMenu) view.findViewById(R.id.beer_info_fab_menu);
         this.menuMultipleActions.addButton(cameraFAB);
         this.menuMultipleActions.addButton(galleryFAB);
+    }
+
+    private void initializeRecyclerView() {
+        this.recycler = (RecyclerView) view.findViewById(R.id.beer_info_photo_list);
+        List<ImageStore> pictures;
+
+        if(this.beer.exists()) {
+            pictures = this.beer.getPicturesFromDB();
+            Log.e("LOG", "Getting pictures from db, " + pictures.size() + " found.");
+
+        } else {
+            Log.e("LOG", "Beer not yet in database. Starting with empty picure list.");
+            pictures = new ArrayList<>();
+        }
+
+        this.recycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        this.recycler.setAdapter(new BeerPictureAdapter(pictures, getActivity()));
     }
 
     @Subscribe
