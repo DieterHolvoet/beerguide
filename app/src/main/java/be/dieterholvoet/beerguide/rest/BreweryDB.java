@@ -22,10 +22,10 @@ import be.dieterholvoet.beerguide.rest.model.BreweryDBResponseLookup;
 import be.dieterholvoet.beerguide.rest.model.BreweryDBResultBeer;
 import be.dieterholvoet.beerguide.rest.model.BreweryDBResponseSearch;
 import be.dieterholvoet.beerguide.tasks.EndpointAvailabilityCheckTask;
-import retrofit.Call;
-import retrofit.GsonConverterFactory;
-import retrofit.Response;
-import retrofit.Retrofit;
+import retrofit2.Response;
+import retrofit2.Call;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Created by Dieter on 30/12/2015.
@@ -152,7 +152,7 @@ public class BreweryDB {
             Log.e(LOG_TAG, "Response is null");
 
         } else {
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 if (response.body() == null) {
                     Log.e(LOG_TAG, "Result is null");
                     Log.e(LOG_TAG, response.message());
