@@ -1,5 +1,7 @@
 package be.dieterholvoet.beerguide.rest.model;
 
+import com.google.gson.annotations.Expose;
+
 import java.util.List;
 
 /**
@@ -7,8 +9,11 @@ import java.util.List;
  */
 
 public class BreweryDBResponseSearch {
+    @Expose
     private String status;
+    @Expose
     private String message;
+    @Expose
     private List<BreweryDBResultBeer> data;
 
     public BreweryDBResponseSearch() {

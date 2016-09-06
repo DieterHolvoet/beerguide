@@ -6,10 +6,14 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +26,9 @@ import be.dieterholvoet.beerguide.rest.model.BreweryDBResponseLookup;
 import be.dieterholvoet.beerguide.rest.model.BreweryDBResultBeer;
 import be.dieterholvoet.beerguide.rest.model.BreweryDBResponseSearch;
 import be.dieterholvoet.beerguide.tasks.EndpointAvailabilityCheckTask;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import retrofit2.Response;
 import retrofit2.Call;
 import retrofit2.Retrofit;
@@ -39,15 +46,38 @@ public class BreweryDB {
 
     private final String[] columns = new String[]{"_id", "BEER_NAME", "BREWERYDB_ID", "BEER_ICON"};
     private final String API_KEY = "63d5648e9125519e5f284d89a1e50f3e";
-    private final String BASE_URL = "http://api.brewerydb.com/v2";
+    private final String BASE_URL = "http://api.brewerydb.com/v2/";
     private final String LOG_TAG = "DAO";
 
     private static boolean dailyLimitReached = false;
 
     public BreweryDB() {
+        Gson gson = new GsonBuilder()
+                .excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC)
+                .excludeFieldsWithoutExposeAnnotation()
+                .serializeNulls()
+                .create();
+
+        OkHttpClient okClient = new OkHttpClient.Builder()
+                .addInterceptor(
+                        new Interceptor() {
+                            @Override
+                            public okhttp3.Response intercept(Chain chain) throws IOException {
+                                okhttp3.Request request = chain.request();
+                                String url = request.url().toString();
+
+                                Log.d(LOG_TAG, url);
+
+                                okhttp3.Response response = chain.proceed(request);
+                                return response;
+                            }
+                        })
+                .build();
+
         restAdapter = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .client(okClient)
                 .build();
 
         searchService = restAdapter.create(BreweryDBSuggestionsService.class);

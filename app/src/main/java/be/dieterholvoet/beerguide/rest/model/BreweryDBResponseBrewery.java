@@ -1,11 +1,16 @@
 package be.dieterholvoet.beerguide.rest.model;
 
+import com.google.gson.annotations.Expose;
+
 /**
  * Created by Dieter on 11/01/2016.
  */
 public class BreweryDBResponseBrewery {
+    @Expose
     private String status;
+    @Expose
     private String message;
+    @Expose
     private BreweryDBResultBrewery data;
 
     public BreweryDBResultBrewery getData() {

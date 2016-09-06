@@ -1,5 +1,7 @@
 package be.dieterholvoet.beerguide.rest.model;
 
+import com.google.gson.annotations.Expose;
+
 import be.dieterholvoet.beerguide.model.BreweryDBAvailability;
 import be.dieterholvoet.beerguide.model.BreweryDBBrewery;
 import be.dieterholvoet.beerguide.model.BreweryDBLabel;
@@ -10,18 +12,30 @@ import be.dieterholvoet.beerguide.model.BreweryDBStyle;
  * Created by Dieter on 9/01/2016.
  */
 public class BreweryDBResultBeer {
+    @Expose
     private String id;
+    @Expose
     private String name;
+    @Expose
     private String year;
-    BreweryDBLabel labels;
-    BreweryDBStyle style;
-    BreweryDBAvailability availability;
-    BreweryDBSRM srm;
-    BreweryDBBrewery brewery;
-    String abv;
-    String ibu;
-    String og;
-    String description;
+    @Expose
+    private BreweryDBLabel labels;
+    @Expose
+    private BreweryDBStyle style;
+    @Expose
+    private BreweryDBAvailability availability;
+    @Expose
+    private BreweryDBSRM srm;
+    @Expose
+    private BreweryDBBrewery brewery;
+    @Expose
+    private String abv;
+    @Expose
+    private String ibu;
+    @Expose
+    private String og;
+    @Expose
+    private String description;
 
     public BreweryDBResultBeer() {
     }

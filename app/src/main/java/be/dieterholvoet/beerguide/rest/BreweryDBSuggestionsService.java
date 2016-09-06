@@ -15,12 +15,12 @@ import retrofit2.http.QueryMap;
  */
 
 public interface BreweryDBSuggestionsService {
-    @GET("v2/search/")
+    @GET("search/")
     Call<BreweryDBResponseSearch> searchBeers(@QueryMap Map<String, String> options);
 
-    @GET("v2/beer/{beerID}")
+    @GET("beer/{beerID}")
     Call<BreweryDBResponseLookup> getBeerByID(@Path("beerID") String beerID, @QueryMap Map<String, String> options);
 
-    @GET("v2/brewery/{breweryID}")
+    @GET("brewery/{breweryID}")
     Call<BreweryDBResponseBrewery> getBreweryByID(@Path("breweryID") String breweryID, @QueryMap Map<String, String> options);
 }
