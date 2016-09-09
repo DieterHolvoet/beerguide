@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.database.MatrixCursor;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
@@ -25,17 +26,19 @@ import android.support.v4.widget.SimpleCursorAdapter;
 import com.squareup.otto.Subscribe;
 
 import be.dieterholvoet.beerguide.adapters.ViewPagerAdapter;
+import be.dieterholvoet.beerguide.bus.BeerLookupTaskEvent;
 import be.dieterholvoet.beerguide.bus.EndPointAvailableEvent;
 import be.dieterholvoet.beerguide.bus.EventBus;
-import be.dieterholvoet.beerguide.fragments.BeersAllFragment;
-import be.dieterholvoet.beerguide.fragments.BeersRecentFragment;
 import be.dieterholvoet.beerguide.fragments.BeersFavoritesFragment;
 import be.dieterholvoet.beerguide.fragments.BeersMoreFragment;
+import be.dieterholvoet.beerguide.fragments.BeersRecyclerFragment;
+import be.dieterholvoet.beerguide.helper.BeersRecyclerFragmentType;
 import be.dieterholvoet.beerguide.listeners.SearchSuggestionListener;
 import be.dieterholvoet.beerguide.listeners.SearchTextListener;
 import be.dieterholvoet.beerguide.rest.BreweryDB;
 import be.dieterholvoet.beerguide.adapters.SearchBeerResultsAdapter;
-import be.dieterholvoet.beerguide.tasks.RecentBeerListTask;
+import be.dieterholvoet.beerguide.tasks.BeerLookupTask;
+import io.realm.Realm;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -46,7 +49,9 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager viewPager;
     private SearchView searchView;
     private SimpleCursorAdapter mSearchViewAdapter;
+    Snackbar snackbar;
 
+    private Realm realm;
     private boolean firstLoadDone = false;
 
     @Override
@@ -67,27 +72,24 @@ public class MainActivity extends AppCompatActivity {
         initializeNavigationView();
         initializeFAB();
         initializeToolbar();
+        initializeSnackbar();
 
         // Check for API availability
         BreweryDB.isEndpointAvailable(this);
+
+        // Get Realm
+        realm = Realm.getDefaultInstance();
     }
 
     @Override
     protected void onDestroy() {
         EventBus.getInstance().unregister(this);
+        realm.close();
         super.onDestroy();
     }
 
-    private void initializeFAB() {
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, NewBeerActivity.class);
-                MainActivity.this.startActivity(intent);
-            }
-        });
-        fab.setVisibility(View.INVISIBLE);
+    private void initializeSnackbar() {
+        snackbar = Snackbar.make(getRootView(), getResources().getString(R.string.dialog_loading_beers), Snackbar.LENGTH_INDEFINITE);
     }
 
     private void initializeSearchView() {
@@ -129,8 +131,19 @@ public class MainActivity extends AppCompatActivity {
         viewPager = (ViewPager) findViewById(R.id.main_viewpager);
 
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
-        adapter.addFrag(new BeersAllFragment(), getResources().getString(R.string.tab_all));
-        adapter.addFrag(new BeersRecentFragment(), getResources().getString(R.string.tab_recent));
+
+        BeersRecyclerFragment fragmentAll = new BeersRecyclerFragment();
+        Bundle fragmentAllArgs = new Bundle();
+        fragmentAllArgs.putSerializable("type", BeersRecyclerFragmentType.ALL);
+        fragmentAll.setArguments(fragmentAllArgs);
+
+        BeersRecyclerFragment fragmentRecent = new BeersRecyclerFragment();
+        Bundle fragmentRecentArgs = new Bundle();
+        fragmentRecentArgs.putSerializable("type", BeersRecyclerFragmentType.ALL);
+        fragmentRecent.setArguments(fragmentRecentArgs);
+
+        adapter.addFrag(fragmentAll, getResources().getString(R.string.tab_all));
+        adapter.addFrag(fragmentRecent, getResources().getString(R.string.tab_recent));
         adapter.addFrag(new BeersFavoritesFragment(), getResources().getString(R.string.tab_favorites));
         adapter.addFrag(new BeersMoreFragment(), getResources().getString(R.string.tab_more));
 
@@ -150,48 +163,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void initializeDrawerLayout() {
-        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-        drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-    }
-
-    private void initializeNavigationView() {
-        navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(MenuItem item) {
-                int id = item.getItemId();
-
-                if (id == R.id.nav_beers) {
-
-                }
-
-                DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-                drawer.closeDrawer(GravityCompat.START);
-                return true;
-            }
-        });
-    }
-
     private void initializeToolbar() {
         toolbar = (Toolbar) findViewById(R.id.main_toolbar);
         setSupportActionBar(toolbar);
-    }
-
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-
-        } else {
-            super.onBackPressed();
-        }
     }
 
     @Override
@@ -205,7 +179,8 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == R.id.action_refresh) {
-            new RecentBeerListTask(this).execute();
+            snackbar.show();
+            new BeerLookupTask(this).execute();
             return true;
         }
 
@@ -235,5 +210,69 @@ public class MainActivity extends AppCompatActivity {
 
             firstLoadDone = true;
         }
+    }
+
+    @Subscribe
+    public void onBeerLookupResult(BeerLookupTaskEvent event) {
+        snackbar.dismiss();
+    }
+
+    private View getRootView() {
+        return findViewById(android.R.id.content);
+    }
+
+    /*
+        NAVIGATION DRAWER & FAB - UNUSED FOR NOW
+     */
+
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    private void initializeDrawerLayout() {
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+        drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+    }
+
+    private void initializeNavigationView() {
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(MenuItem item) {
+                int id = item.getItemId();
+
+                if (id == R.id.nav_beers) {
+
+                }
+
+                DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+                drawer.closeDrawer(GravityCompat.START);
+                return true;
+            }
+        });
+    }
+
+    private void initializeFAB() {
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, NewBeerActivity.class);
+                MainActivity.this.startActivity(intent);
+            }
+        });
+        fab.setVisibility(View.INVISIBLE);
     }
 }

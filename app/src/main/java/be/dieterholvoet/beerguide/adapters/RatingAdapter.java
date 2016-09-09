@@ -17,6 +17,7 @@ import be.dieterholvoet.beerguide.R;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.model.BeerRating;
 import be.dieterholvoet.beerguide.model.RatingElement;
+import io.realm.Realm;
 
 /**
  * Created by Dieter on 30/12/2015.
@@ -25,10 +26,12 @@ public class RatingAdapter extends RecyclerView.Adapter<RatingAdapter.RatingView
 
     private List<RatingElement> ratingElements;
     private NewBeerActivity activity;
+    private Realm realm = Realm.getDefaultInstance();
 
     public RatingAdapter(List<RatingElement> ratingElements, Activity activity) {
         this.ratingElements = ratingElements;
         this.activity = (NewBeerActivity) activity;
+        this.realm = Realm.getDefaultInstance();
     }
 
     @Override
@@ -47,73 +50,109 @@ public class RatingAdapter extends RecyclerView.Adapter<RatingAdapter.RatingView
 
     @Override
     public RatingAdapter.RatingViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+
         View v = LayoutInflater.
                 from(viewGroup.getContext()).
                 inflate(R.layout.item_rating_card, viewGroup, false);
 
         RatingAdapter.RatingViewHolder vh = new RatingViewHolder(v, new RatingAdapter.RatingViewHolder.ViewHolderRatingChanges() {
             @Override
-            public void onAppearanceFoamRatingChange(int rating) {
-                Beer beer = activity.getBeer();
-                BeerRating beer_rating = beer.getRating();
-                beer_rating.setFoam(rating);
-                beer.setRating(beer_rating);
-                activity.setBeer(beer);
-                Log.e("DEBUG", "Foam = " + rating);
+            public void onAppearanceFoamRatingChange(final int rating) {
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        Beer beer = activity.getBeer();
+                        BeerRating beer_rating = beer.getRating();
+                        beer_rating.setFoam(rating);
+                        beer.setRating(beer_rating);
+                        activity.setBeer(beer);
+                    }
+                });
             }
 
             @Override
-            public void onAppearanceColorRatingChange(int rating) {
-                Beer beer = activity.getBeer();
-                BeerRating beer_rating = beer.getRating();
-                beer_rating.setColor(rating);
-                beer.setRating(beer_rating);
-                activity.setBeer(beer);
+            public void onAppearanceColorRatingChange(final int rating) {
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        Beer beer = activity.getBeer();
+                        BeerRating beer_rating = beer.getRating();
+                        beer_rating.setColor(rating);
+                        beer.setRating(beer_rating);
+                        activity.setBeer(beer);
+                    }
+                });
             }
 
             @Override
-            public void onAppearanceClearnessRatingChange(int rating) {
-                Beer beer = activity.getBeer();
-                BeerRating beer_rating = beer.getRating();
-                beer_rating.setClarity(rating);
-                beer.setRating(beer_rating);
+            public void onAppearanceClearnessRatingChange(final int rating) {
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        Beer beer = activity.getBeer();
+                        BeerRating beer_rating = beer.getRating();
+                        beer_rating.setClarity(rating);
+                        beer.setRating(beer_rating);
+                    }
+                });
             }
 
             @Override
-            public void onTasteSweetnessRatingChange(int rating) {
-                Beer beer = activity.getBeer();
-                BeerRating beer_rating = beer.getRating();
-                beer_rating.setSweetness(rating);
-                beer.setRating(beer_rating);
+            public void onTasteSweetnessRatingChange(final int rating) {
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        Beer beer = activity.getBeer();
+                        BeerRating beer_rating = beer.getRating();
+                        beer_rating.setSweetness(rating);
+                        beer.setRating(beer_rating);
+                    }
+                });
             }
 
             @Override
-            public void onTasteSournessRatingChange(int rating) {
-                Beer beer = activity.getBeer();
-                BeerRating beer_rating = beer.getRating();
-                beer_rating.setSourness(rating);
-                beer.setRating(beer_rating);
+            public void onTasteSournessRatingChange(final int rating) {
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        Beer beer = activity.getBeer();
+                        BeerRating beer_rating = beer.getRating();
+                        beer_rating.setSourness(rating);
+                        beer.setRating(beer_rating);
+                    }
+                });
             }
 
             @Override
-            public void onTasteBitternessRatingChange(int rating) {
-                Beer beer = activity.getBeer();
-                BeerRating beer_rating = beer.getRating();
-                beer_rating.setBitterness(rating);
-                beer.setRating(beer_rating);
+            public void onTasteBitternessRatingChange(final int rating) {
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        Beer beer = activity.getBeer();
+                        BeerRating beer_rating = beer.getRating();
+                        beer_rating.setBitterness(rating);
+                        beer.setRating(beer_rating);
+                    }
+                });
             }
 
             @Override
-            public void onTasteFullnessRatingChange(int rating) {
-                Beer beer = activity.getBeer();
-                BeerRating beer_rating = beer.getRating();
-                beer_rating.setFullness(rating);
-                beer.setRating(beer_rating);
+            public void onTasteFullnessRatingChange(final int rating) {
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        Beer beer = activity.getBeer();
+                        BeerRating beer_rating = beer.getRating();
+                        beer_rating.setFullness(rating);
+                        beer.setRating(beer_rating);
+                    }
+                });
             }
         });
 
         return vh;
     }
+
 
     public static class RatingViewHolder extends RecyclerView.ViewHolder implements RatingBar.OnRatingBarChangeListener {
         protected String name;

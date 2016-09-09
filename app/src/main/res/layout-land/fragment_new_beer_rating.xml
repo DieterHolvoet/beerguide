@@ -101,7 +101,7 @@
                         android:layout_height="match_parent"
                         android:inputType="textMultiLine"
                         android:ems="10"
-                        android:id="@+id/editText"
+                        android:id="@+id/beer_info_notes"
                         android:minLines="3"
                         android:lines="3" />
                 </LinearLayout>

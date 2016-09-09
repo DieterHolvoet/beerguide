@@ -26,9 +26,9 @@ import be.dieterholvoet.beerguide.rest.model.BreweryDBResponseLookup;
 import be.dieterholvoet.beerguide.rest.model.BreweryDBResultBeer;
 import be.dieterholvoet.beerguide.rest.model.BreweryDBResponseSearch;
 import be.dieterholvoet.beerguide.tasks.EndpointAvailabilityCheckTask;
+import io.realm.Realm;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import retrofit2.Response;
 import retrofit2.Call;
 import retrofit2.Retrofit;
@@ -140,30 +140,39 @@ public class BreweryDB {
         }
     }
 
-    public Beer getBreweryDBData(Beer beer) {
+    public Beer setBreweryDBData(Beer beer) {
+        Realm realm = Realm.getDefaultInstance();
         BreweryDBBeer bdb = beer.getBdb();
+
         if(bdb == null) {
-            Log.e("LOG", "Can't get bdb data, bdb is null!");
-            return beer;
+            Log.e(LOG_TAG, "Can't get bdb data, bdb is null!");
 
         } else {
-            if(bdb.getDescription() == null) {
-                if(bdb.getBreweryDBID() == null) {
-                    Log.e("API", "No BreweryDB ID provided.");
+            if(bdb.getBreweryDBID() == null) {
+                Log.e(LOG_TAG, "No BreweryDB ID provided.");
+
+            } else {
+                Log.e(LOG_TAG, "BEER ID: " + bdb.getBreweryDBID());
+                BreweryDBBeer newBdb = getBeerByID(bdb.getBreweryDBID());
+
+                if(beer.exists()) {
+                    beer.getBdb().delete(realm);
+                    newBdb.setPrimaryKey(0); // Force the generation of a new primary key
+                    beer.setBdb(newBdb.save(realm));
 
                 } else {
-                    Log.e("ERROR", "BEER ID: " + bdb.getBreweryDBID());
-                    beer.setBdb(getBeerByID(bdb.getBreweryDBID()));
+                    beer.setBdb(newBdb);
                 }
             }
-
-            return beer;
         }
+
+        realm.close();
+        return beer;
     }
 
-    public List<Beer> getBreweryDBData(List<Beer> beers) {
+    public List<Beer> setBreweryDBData(List<Beer> beers) {
         for(int i = 0; i < beers.size(); i++) {
-            beers.set(i, getBreweryDBData(beers.get(i)));
+            beers.set(i, setBreweryDBData(beers.get(i)));
         }
         return beers;
     }
@@ -241,7 +250,7 @@ public class BreweryDB {
 
                     row.add(i);
                     row.add(bdb.getName());
-                    row.add(bdb.getId());
+                    row.add(bdb.getBreweryDBID());
 
                     if(bdb.getLabels() != null) {
                         row.add(bdb.getLabels().getIcon());

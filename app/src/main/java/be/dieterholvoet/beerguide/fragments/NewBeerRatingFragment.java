@@ -24,6 +24,7 @@ import be.dieterholvoet.beerguide.R;
 import be.dieterholvoet.beerguide.db.BeerDAO;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.model.BeerRating;
+import io.realm.Realm;
 
 /**
  * Created by Dieter on 26/12/2015.
@@ -37,19 +38,29 @@ public class NewBeerRatingFragment extends Fragment {
     Beer beer;
     Drawable starDrawable;
     View view;
+    Realm realm;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
+        realm = Realm.getDefaultInstance();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        realm.close();
+        realm = null;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+        final NewBeerActivity activity = (NewBeerActivity) getActivity();
 
         this.view = inflater.inflate(R.layout.fragment_new_beer_rating, null);
-        this.activity = (NewBeerActivity) getActivity();
+        this.activity = activity;
         this.beer = activity.getBeer();
         this.overallRating = (RatingBar) view.findViewById(R.id.overall_rating_card_rating);
         this.notes = (EditText) view.findViewById((R.id.beer_info_notes));
@@ -79,7 +90,10 @@ public class NewBeerRatingFragment extends Fragment {
                     Toast.makeText(getActivity(), getResources().getString(R.string.dialog_overall_rating_before_save), Toast.LENGTH_SHORT).show();
 
                 } else {
-                    BeerDAO.save(beer);
+                    beer.log();
+                    beer.save(realm);
+                    beer.savePictures(realm);
+
                     startActivity(new Intent(getActivity(), MainActivity.class));
                     activity.finish();
                 }
@@ -88,10 +102,15 @@ public class NewBeerRatingFragment extends Fragment {
 
         overallRating.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
             @Override
-            public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
-                BeerRating beerRating = beer.getRating();
-                beerRating.setRating(ratingBar.getRating());
-                beer.setRating(beerRating);
+            public void onRatingChanged(final RatingBar ratingBar, float rating, boolean fromUser) {
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        BeerRating beerRating = beer.getRating();
+                        beerRating.setRating(ratingBar.getRating());
+                        beer.setRating(beerRating);
+                    }
+                });
             }
         });
 
@@ -107,8 +126,13 @@ public class NewBeerRatingFragment extends Fragment {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {
-                beer.setNotes(s.toString());
+            public void afterTextChanged(final Editable s) {
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        beer.setNotes(s.toString());
+                    }
+                });
             }
         });
 

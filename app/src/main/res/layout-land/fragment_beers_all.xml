@@ -18,7 +18,7 @@ android:layout_height="match_parent">
     android:paddingRight="@dimen/recycler_padding"
     app:rrvIsRefreshable="true"
     app:rrvEmptyLayoutId="@layout/empty_view"
-    app:rrvLayoutType="LinearLayout"
-    app:rrvSwipeToDelete="true"
+    app:rrvLayoutType="Grid"
+    app:rrvGridLayoutSpanCount="2"
     />
 </RelativeLayout>

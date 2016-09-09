@@ -22,13 +22,19 @@ import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.Button;
 
+import com.squareup.otto.Subscribe;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileDescriptor;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import be.dieterholvoet.beerguide.adapters.BeerPictureAdapter;
 import be.dieterholvoet.beerguide.adapters.ViewPagerAdapter;
+import be.dieterholvoet.beerguide.bus.BeerLookupTaskEvent;
+import be.dieterholvoet.beerguide.bus.EventBus;
 import be.dieterholvoet.beerguide.db.BeerDAO;
 import be.dieterholvoet.beerguide.fragments.NewBeerAppearanceFragment;
 import be.dieterholvoet.beerguide.fragments.NewBeerInfoFragment;
@@ -37,68 +43,90 @@ import be.dieterholvoet.beerguide.fragments.NewBeerTasteFragment;
 import be.dieterholvoet.beerguide.helper.ImageStore;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.model.BreweryDBBeer;
+import be.dieterholvoet.beerguide.rest.BreweryDB;
+import be.dieterholvoet.beerguide.tasks.BeerLookupTask;
+import io.realm.Realm;
 
 public class NewBeerActivity extends AppCompatActivity {
     private final String SAVEDINSTANCESTATE_KEY = "currentBeer";
+    private final String LOG = "NewBeerActivity";
     private Toolbar toolbar;
     private TabLayout tabLayout;
     private ViewPager viewPager;
+    private ViewPagerAdapter adapter;
+
     private Beer beer = new Beer();
+    private Realm realm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        realm = Realm.getDefaultInstance();
 
         // setContentView
         setContentView(R.layout.activity_new_beer);
 
-        // Get data from savedInstanceState
-        if(savedInstanceState != null) {
-            beer = (Beer) savedInstanceState.getSerializable(SAVEDINSTANCESTATE_KEY);
-        }
-
-        // Get data from intent
-        Bundle b = getIntent().getExtras();
-        if(b != null) {
-            BreweryDBBeer bdb = new BreweryDBBeer();
-            bdb.setBreweryDBID(b.getString("bdbID"));
-            bdb.setName(b.getString("beerName"));
-            beer.setBdb(bdb);
-
-            setTitle(b.getString("beerName"));
-        }
-
-        // Get data from database
-        Beer dbBeer = BeerDAO.getByBreweryDBID(beer.getBdb().getBreweryDBID());
-
-        if(dbBeer == null) {
-            Log.e("BEER", "Beer not yet in database");
-
-        } else {
-            beer = dbBeer;
-        }
-
-        // Test data
-        Log.e("BEER", "Name: " + beer.getBdb().getName());
-        Log.e("BEER", "ID: " + beer.getBdb().getBreweryDBID());
-
-        if(beer.getRating() == null) {
-            Log.e("BEER", "Rating is null");
-        } else {
-            Log.e("BEER", "Rating: " + beer.getRating().getRating());
-        }
-
-        if(beer.getBdb().getStyle() == null) {
-            Log.e("BEER", "Style (and category) is null");
-
-        } else {
-            Log.e("BEER", "Category: " + beer.getBdb().getStyle().getCategory().getName());
-        }
+        // Get Realm
+        realm = Realm.getDefaultInstance();
 
         // Initialize stuff
         initializeToolbar();
         initializeViewPager();
         initializeTabLayout();
+
+        // Get data
+        String bdbid = null;
+
+        /*
+        Get data from savedInstanceState
+        Case:
+            - Activity was terminated by system (screen rotation, app in background, ...)
+        */
+        if(savedInstanceState != null) {
+            if(savedInstanceState.getString("bdbID") != null) {
+                Log.d(LOG, "Getting data from savedInstanceState");
+                bdbid = savedInstanceState.getString("bdbID");
+            }
+        }
+
+        /*
+        Get data from intent
+        Case:
+            - Tapped on saved beer in MainActivity
+        */
+        final Bundle b = getIntent().getExtras();
+        if(b != null) {
+            Log.d(LOG, "Getting data from intent bundle");
+            setTitle(b.getString("beerName"));
+            bdbid = b.getString("bdbID");
+        }
+
+        if(bdbid == null) {
+            Log.e("BEER", "Haven't received a BreweryDBID.");
+
+        } else {
+            if(BeerDAO.getByBreweryDBID(realm, bdbid) == null) {
+                Log.e("BEER", "Setting up a temporary, unmanaged Beer object with the correct BreweryDBID.");
+                beer = new Beer();
+                beer.setBdb(new BreweryDBBeer(bdbid));
+
+                new BeerLookupTask(this, beer).execute();
+
+            } else {
+                Log.e("BEER", "Getting beer object from database.");
+                beer = BeerDAO.getByBreweryDBID(realm, bdbid);
+                EventBus.getInstance().post(new BeerLookupTaskEvent(new ArrayList<Beer>(Arrays.asList(beer))));
+            }
+        }
+
+        // Test data
+        // beer.log();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        realm.close();
     }
 
     @Override
@@ -125,37 +153,21 @@ public class NewBeerActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putSerializable(SAVEDINSTANCESTATE_KEY, beer);
+        outState.putString("bdbID", beer.getBdb().getBreweryDBID());
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == ImageStore.REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            if(beer.exists()) {
-                beer.setPicturesFromDB();
-            }
+            BeerDAO.savePictures(realm, beer);
 
             ((RecyclerView) findViewById(R.id.beer_info_photo_list)).setAdapter(new BeerPictureAdapter(beer.getPictures(), this));
         }
     }
 
-    public Uri getImageUri(Context inContext, Bitmap inImage) {
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-        String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
-        return Uri.parse(path);
-    }
-
-    public String getRealPathFromURI(Uri uri) {
-        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-        cursor.moveToFirst();
-        int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
-        return cursor.getString(idx);
-    }
-
     private void initializeViewPager() {
-        viewPager = (ViewPager) findViewById(R.id.new_beer_viewpager);
+        this.viewPager = (ViewPager) findViewById(R.id.new_beer_viewpager);
+        this.adapter = new ViewPagerAdapter(getSupportFragmentManager());
 
-        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
         adapter.addFrag(new NewBeerInfoFragment(), getResources().getString(R.string.tab_info));
         adapter.addFrag(new NewBeerAppearanceFragment(), getResources().getString(R.string.tab_appearance));
         adapter.addFrag(new NewBeerTasteFragment(), getResources().getString(R.string.tab_taste));

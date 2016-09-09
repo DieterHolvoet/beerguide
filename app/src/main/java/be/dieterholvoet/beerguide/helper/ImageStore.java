@@ -2,16 +2,12 @@ package be.dieterholvoet.beerguide.helper;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.ImageView;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -20,30 +16,36 @@ import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import be.dieterholvoet.beerguide.NewBeerActivity;
 import be.dieterholvoet.beerguide.R;
 import be.dieterholvoet.beerguide.model.Beer;
+import io.realm.Realm;
+import io.realm.RealmObject;
+import io.realm.annotations.Ignore;
+import io.realm.annotations.PrimaryKey;
+import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 
 /**
  * Created by Dieter on 5/02/2016.
  * Source: http://developer.android.com/training/camera/photobasics.html
  */
 
-@Table(name = "Images")
-public class ImageStore extends Model implements Serializable {
-    public static final int REQUEST_IMAGE_CAPTURE = 1;
-    public static final int REQUEST_TAKE_PHOTO = 1;
-
-    private String timeStamp;
-    private String imageFileName;
-    private File file;
-    private Uri uri;
-
-    @Column(name = "imagePath")
+public class ImageStore extends RealmObject implements Serializable {
+    @PrimaryKey
+    private long primaryKey;
     private String path;
 
-    @Column(name = "beer")
-    private Beer beer;
+    @Ignore
+    public static final int REQUEST_IMAGE_CAPTURE = 1;
+    @Ignore
+    public static final int REQUEST_TAKE_PHOTO = 1;
+    @Ignore
+    private String timeStamp;
+    @Ignore
+    private String imageFileName;
+    @Ignore
+    private File file;
+    @Ignore
+    private Uri uri;
 
     public ImageStore() {
         this.createImageFile();
@@ -51,19 +53,6 @@ public class ImageStore extends Model implements Serializable {
 
     public ImageStore(String path) {
         this.path = path;
-    }
-
-    public ImageStore(String path, Beer beer) {
-        this.path = path;
-        this.beer = beer;
-    }
-
-    public Beer getBeer() {
-        return beer;
-    }
-
-    public void setBeer(Beer beer) {
-        this.beer = beer;
     }
 
     private void createImageFile() {
@@ -134,5 +123,58 @@ public class ImageStore extends Model implements Serializable {
                 .centerCrop()
                 .placeholder(R.drawable.beer_placeholder)
                 .into(view);
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public long getPrimaryKey() {
+        return primaryKey;
+    }
+
+    public void setPrimaryKey(long primaryKey) {
+        this.primaryKey = primaryKey;
+    }
+
+    public ImageStore save(Realm realm) {
+        ImageStore newObj;
+        boolean inTransactionBefore = realm.isInTransaction();
+
+        try {
+            if(!inTransactionBefore) realm.beginTransaction();
+
+            if(this.primaryKey == 0) throw new RealmPrimaryKeyConstraintException("");
+
+        } catch(RealmPrimaryKeyConstraintException e) {
+            this.primaryKey = PrimaryKeyFactory.getInstance().nextKey(this.getClass());
+
+        } finally {
+            newObj = realm.copyToRealm(this);
+            if(!inTransactionBefore) realm.commitTransaction();
+        }
+
+        return newObj;
+    }
+
+    public void delete(Realm realm) {
+        boolean inTransactionBefore = realm.isInTransaction();
+
+        try {
+            if(!inTransactionBefore) realm.beginTransaction();
+            if(this.primaryKey == 0) throw new Exception("Cannot delete: this is not a managed Realm object.");
+
+        } catch(Exception e) {
+            Log.d("BEER", e.getMessage());
+            return;
+
+        } finally {
+            this.deleteFromRealm();
+            if(!inTransactionBefore) realm.commitTransaction();
+        }
     }
 }

@@ -1,57 +1,48 @@
 package be.dieterholvoet.beerguide.model;
 
-import android.app.Activity;
-import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
-
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 import be.dieterholvoet.beerguide.helper.ImageStore;
+import be.dieterholvoet.beerguide.helper.PrimaryKeyFactory;
+import be.dieterholvoet.beerguide.helper.RealmCascadedActions;
+import io.realm.Realm;
+import io.realm.RealmList;
+import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
+import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 
 /**
  * Created by Dieter on 26/12/2015.
  */
 
-@Table(name = "Beers")
-public class Beer extends Model implements Serializable {
-    @Column(name = "timestamp")
+public class Beer extends RealmObject implements Serializable, RealmCascadedActions {
+    @PrimaryKey
+    private long primaryKey;
     private long timestamp;
-
-    @Column(name = "favorite")
     private boolean favorite;
-    
-    @Column(name = "rating")
     private BeerRating rating;
-
-    @Column(name = "bdb")
     private BreweryDBBeer bdb;
-
-    @Column(name = "notes")
     private String notes;
 
-    private List<ImageStore> pictures;
+    private RealmList<ImageStore> pictures;
 
     public Beer() {
         super();
         this.rating = new BeerRating();
         this.bdb = new BreweryDBBeer();
-        this.pictures = new ArrayList<>();
+        this.pictures = new RealmList<>();
     }
 
     public Beer(BreweryDBBeer bdb) {
         super();
         this.rating = new BeerRating();
         this.bdb = bdb;
-        this.pictures = new ArrayList<>();
+        this.pictures = new RealmList<>();
     }
 
     public long getTimestamp() {
@@ -94,24 +85,11 @@ public class Beer extends Model implements Serializable {
         this.notes = notes;
     }
 
-    public List<ImageStore> getPicturesFromDB() {
-        return new Select()
-                .from(ImageStore.class)
-                .where("beer = ?", this.getId())
-                .execute();
-        // return getMany(ImageStore.class, "beerFK");
-    }
-
-    public void setPicturesFromDB() {
-        pictures = getPicturesFromDB();
-    }
-
-    public void addPicture(Uri uri, Activity context) {
-        addPicture(new ImageStore(uri.toString(), this));
+    public void addPicture(Uri uri) {
+        addPicture(new ImageStore(uri.toString()));
     }
 
     public void addPicture(ImageStore image) {
-        image.setBeer(this);
         pictures.add(image);
     }
 
@@ -119,18 +97,92 @@ public class Beer extends Model implements Serializable {
         return pictures;
     }
 
-    public void log() {
-        Log.e("BEER", "Timestamp is " + this.timestamp == null ? "null" : String.valueOf(timestamp));
-        Log.e("BEER", "Favorite " + this.favorite == null ? "null" : "not null");
-        Log.e("BEER", "Rating is " + this.rating == null ? "null" : "not null");
-        Log.e("BEER", "BDB beer is " + this.bdb == null ? "null" : "not null");
+    public long getPrimaryKey() {
+        return primaryKey;
+    }
 
-        if(this.bdb != null) {
-            Log.e("BEER", "Description is " + this.bdb.getDescription() == null ? "null" : this.bdb.getDescription());
-        }
+    public void setPrimaryKey(long primaryKey) {
+        this.primaryKey = primaryKey;
     }
 
     public boolean exists() {
-        return this.getId() != null;
+        return this.primaryKey != 0;
+    }
+
+    public void log() {
+        Log.e("BEER", "Timestamp is " + (this.timestamp == 0 ? "0" : String.valueOf(timestamp)));
+        Log.e("BEER", "Favorite " + (this.favorite ? "true" : "false"));
+        Log.e("BEER", "Rating is " + (this.rating == null ? "null" : this.rating.toString()));
+        Log.e("BEER", "BreweryDBBeer is " + (this.bdb == null ? "null" : this.bdb.toString()));
+        Log.e("BEER", "Style is " + (this.bdb.getStyle() == null ? "null" : this.bdb.getStyle()));
+
+        if(this.bdb != null) {
+            Log.e("BEER", "Description is " + (this.bdb.getDescription() == null ? "null" : this.bdb.getDescription()));
+
+            if(this.bdb.getStyle() != null) {
+                Log.e("BEER", "Category is " + (this.bdb.getStyle().getCategory() == null ? "null" : this.bdb.getStyle().getCategory()));
+            }
+        }
+    }
+
+    public Beer save(Realm realm) {
+        Beer newObj;
+        boolean inTransactionBefore = realm.isInTransaction();
+
+        try {
+            if(!inTransactionBefore) realm.beginTransaction();
+            if(this.bdb != null) this.bdb = this.bdb.save(realm);
+            if(this.rating != null) this.rating = this.rating.save(realm);
+
+            if(this.primaryKey == 0) {
+                this.timestamp = Calendar.getInstance().getTimeInMillis();
+                throw new RealmPrimaryKeyConstraintException("");
+            }
+
+        } catch(RealmPrimaryKeyConstraintException e) {
+            this.primaryKey = PrimaryKeyFactory.getInstance().nextKey(this.getClass());
+
+        } finally {
+            newObj = realm.copyToRealm(this);
+            if(!inTransactionBefore) realm.commitTransaction();
+        }
+
+        return newObj;
+    }
+
+    public void delete(Realm realm) {
+        boolean inTransactionBefore = realm.isInTransaction();
+
+        try {
+            if(!inTransactionBefore) realm.beginTransaction();
+            if(this.primaryKey == 0) throw new Exception("Cannot delete: this is not a managed Realm object.");
+            if(this.bdb != null) this.bdb.delete(realm);
+            if(this.rating != null) this.rating.delete(realm);
+
+        } catch(Exception e) {
+            Log.d("BEER", e.getMessage());
+            return;
+
+        } finally {
+            this.deleteFromRealm();
+            if(!inTransactionBefore) realm.commitTransaction();
+        }
+    }
+
+    public void savePictures(Realm realm) {
+        realm.beginTransaction();
+
+        if(this.pictures != null && !this.pictures.isEmpty()) {
+            Log.e("BEER", "Saving " + this.pictures.size() + " pictures!");
+
+            for(ImageStore picture : this.pictures) {
+                realm.copyToRealm(picture);
+            }
+
+        } else {
+            Log.e("BEER", "No pictures to save!");
+        }
+
+        realm.commitTransaction();
     }
 }

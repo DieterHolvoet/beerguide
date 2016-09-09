@@ -24,7 +24,7 @@ public class SearchBeerResultsAdapter extends SimpleCursorAdapter {
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        ImageView imageView = (ImageView)view.findViewById(R.id.beer_icon);
+        // ImageView imageView = (ImageView)view.findViewById(R.id.beer_icon);
         TextView textView = (TextView)view.findViewById(R.id.beer_name);
 
         textView.setText(cursor.getString(1));

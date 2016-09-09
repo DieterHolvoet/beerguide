@@ -2,16 +2,14 @@ package be.dieterholvoet.beerguide.tasks;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import java.util.List;
 
 import be.dieterholvoet.beerguide.bus.BeerListTaskEvent;
 import be.dieterholvoet.beerguide.bus.EventBus;
-import be.dieterholvoet.beerguide.db.BeerDAO;
 import be.dieterholvoet.beerguide.model.Beer;
-import be.dieterholvoet.beerguide.model.BreweryDBBeer;
 import be.dieterholvoet.beerguide.rest.BreweryDB;
+import io.realm.Realm;
 
 /**
  * Created by Dieter on 9/01/2016.
@@ -19,16 +17,23 @@ import be.dieterholvoet.beerguide.rest.BreweryDB;
 
 public class BeerListTask extends AsyncTask<Void, Void, List<Beer>> {
     Context context;
+    List<Beer> beers;
 
-    public BeerListTask(Context context) {
+    public BeerListTask(Context context, List<Beer> beers) {
         this.context = context;
+        this.beers = beers;
     }
 
     @Override
     protected List<Beer> doInBackground(Void... params) {
-        List<Beer> beers = BeerDAO.getAll();
+        Realm realm = Realm.getDefaultInstance();
         if(BreweryDB.isNetworkAvailable(context) && beers != null && beers.size() > 0) {
-            beers = BreweryDB.getInstance().getBreweryDBData(beers);
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    beers = BreweryDB.getInstance().setBreweryDBData(beers);
+                }
+            });
         }
         return beers;
     }

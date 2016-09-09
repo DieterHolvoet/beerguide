@@ -1,28 +1,31 @@
 package be.dieterholvoet.beerguide.model;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
+import android.util.Log;
+
+import com.google.gson.annotations.Expose;
 
 import java.io.Serializable;
+
+import be.dieterholvoet.beerguide.helper.PrimaryKeyFactory;
+import io.realm.Realm;
+import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
+import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 
 /**
  * Created by Dieter on 29/12/2015.
  */
 
-@Table(name = "BreweryDBLabels")
-public class BreweryDBLabel extends Model implements Serializable {
-    @Column(name = "medium")
-    private String medium;
+public class BreweryDBLabel extends RealmObject implements Serializable {
+    @PrimaryKey
+    private long primaryKey;
 
-    @Column(name = "large")
-    private String large;
-
-    @Column(name = "icon")
+    @Expose
     private String icon;
-
-    @Column(name = "BreweryDBBeer", onDelete = Column.ForeignKeyAction.CASCADE)
-    BreweryDBBeer bdbBeer;
+    @Expose
+    private String medium;
+    @Expose
+    private String large;
 
     public BreweryDBLabel() {
         super();
@@ -52,11 +55,47 @@ public class BreweryDBLabel extends Model implements Serializable {
         this.medium = medium;
     }
 
-    public BreweryDBBeer getBdbBeer() {
-        return bdbBeer;
+    public long getPrimaryKey() {
+        return primaryKey;
     }
 
-    public void setBdbBeer(BreweryDBBeer bdbBeer) {
-        this.bdbBeer = bdbBeer;
+    public void setPrimaryKey(long primaryKey) {
+        this.primaryKey = primaryKey;
+    }
+
+    public BreweryDBLabel save(Realm realm) {
+        BreweryDBLabel newObj;
+        boolean inTransactionBefore = realm.isInTransaction();
+
+        try {
+            if(!inTransactionBefore) realm.beginTransaction();
+            if(this.primaryKey == 0) throw new RealmPrimaryKeyConstraintException("");
+
+        } catch(RealmPrimaryKeyConstraintException e) {
+            this.primaryKey = PrimaryKeyFactory.getInstance().nextKey(this.getClass());
+
+        } finally {
+            newObj = realm.copyToRealm(this);
+            if(!inTransactionBefore) realm.commitTransaction();
+        }
+
+        return newObj;
+    }
+
+    public void delete(Realm realm) {
+        boolean inTransactionBefore = realm.isInTransaction();
+
+        try {
+            if(!inTransactionBefore) realm.beginTransaction();
+            if(this.primaryKey == 0) throw new Exception("Cannot delete: this is not a managed Realm object.");
+
+        } catch(Exception e) {
+            Log.d("BEER", e.getMessage());
+            return;
+
+        } finally {
+            this.deleteFromRealm();
+            if(!inTransactionBefore) realm.commitTransaction();
+        }
     }
 }

@@ -1,9 +1,8 @@
 package be.dieterholvoet.beerguide.fragments;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,28 +15,22 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.activeandroid.query.Select;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import be.dieterholvoet.beerguide.NewBeerActivity;
 import be.dieterholvoet.beerguide.R;
 import be.dieterholvoet.beerguide.adapters.BeerPictureAdapter;
 import be.dieterholvoet.beerguide.bus.BeerLookupTaskEvent;
-import be.dieterholvoet.beerguide.bus.EndPointAvailableEvent;
 import be.dieterholvoet.beerguide.bus.EventBus;
-import be.dieterholvoet.beerguide.db.BeerDAO;
 import be.dieterholvoet.beerguide.helper.Helper;
 import be.dieterholvoet.beerguide.helper.ImageStore;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.model.BreweryDBBeer;
-import be.dieterholvoet.beerguide.rest.BreweryDB;
-import be.dieterholvoet.beerguide.tasks.BeerLookupTask;
 
 /**
  * Created by Dieter on 26/12/2015.
@@ -72,11 +65,21 @@ public class NewBeerInfoFragment extends Fragment {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        EventBus.getInstance().register(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getInstance().unregister(this);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         this.view = inflater.inflate(R.layout.fragment_new_beer_info, null);
-        this.activity = (NewBeerActivity) getActivity();
         this.pm = getContext().getPackageManager();
-        this.beer = activity.getBeer();
 
         this.name = (TextView) view.findViewById(R.id.beer_info_name);
         this.abv = (TextView) view.findViewById(R.id.beer_info_abv_value);
@@ -89,9 +92,12 @@ public class NewBeerInfoFragment extends Fragment {
 
         this.img = (ImageView) view.findViewById(R.id.beer_info_img);
 
+        this.activity = (NewBeerActivity) getActivity();
+        this.beer = activity.getBeer();
+
         initializeFAB();
         initializeRecyclerView();
-        loadText();
+        loadData();
 
         switch(getResources().getConfiguration().orientation) {
             // Portrait
@@ -108,24 +114,11 @@ public class NewBeerInfoFragment extends Fragment {
 
     @Override
     public void onAttach(Context context) {
-        // Fix for getActivity returning null
         super.onAttach(context);
-        BreweryDB.isEndpointAvailable(context);
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        EventBus.getInstance().register(this);
-    }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-        EventBus.getInstance().unregister(this);
-    }
-
-    private void loadText() {
+    public void loadData() {
         final String PLACEHOLDER = "N/A";
 
         if(beer.getBdb() == null) {
@@ -134,29 +127,19 @@ public class NewBeerInfoFragment extends Fragment {
         } else {
             BreweryDBBeer bdb = beer.getBdb();
 
-            if(bdb.getSrm() == null) {
-                Log.e("BEER", "SRM in activity is null");
-
-            } else {
+            if(bdb.getSrm() != null) {
                 this.srm.setText(bdb.getSrm().getName() == null ? PLACEHOLDER : bdb.getSrm().getName());
             }
 
-            if(bdb.getBrewery() == null) {
-                Log.e("BEER", "Brewery in activity is null");
-
-            } else {
+            if(bdb.getBrewery() != null) {
                 this.brewery.setText(bdb.getBrewery().getName() == null ? PLACEHOLDER : bdb.getBrewery().getName());
             }
 
-            if(bdb.getStyle() == null) {
-                Log.e("BEER", "Style in activity is null");
-
-            } else {
+            if(bdb.getStyle() != null) {
                 this.style.setText(bdb.getStyle().getName() == null ? PLACEHOLDER : bdb.getStyle().getName());
             }
 
             if(bdb.getLabels() == null) {
-                Log.e("BEER", "Labels in activity are null");
                 Picasso.with(activity)
                         .load(R.drawable.beer_placeholder)
                         .resize(200, 267)
@@ -193,7 +176,10 @@ public class NewBeerInfoFragment extends Fragment {
                 public void onClick(View v) {
                     if (Helper.isExternalStoragePresent()) {
                         ImageStore image = new ImageStore();
-                        beer.addPicture(image.dispatchTakePictureIntent(activity), getActivity());
+
+                        Uri uri = image.dispatchTakePictureIntent(activity);
+                        if(uri != null) beer.addPicture(uri);
+
                         activity.setBeer(beer);
                         image.addToGallery(activity);
 
@@ -225,34 +211,16 @@ public class NewBeerInfoFragment extends Fragment {
         this.recycler = (RecyclerView) view.findViewById(R.id.beer_info_photo_list);
         List<ImageStore> pictures;
 
-        if(this.beer.exists()) {
-            pictures = this.beer.getPicturesFromDB();
-            Log.e("LOG", "Getting pictures from db, " + pictures.size() + " found.");
-
-        } else {
-            Log.e("LOG", "Beer not yet in database. Starting with empty picure list.");
-            pictures = new ArrayList<>();
-        }
+        pictures = this.beer.getPictures();
+        Log.e("LOG", "Getting pictures from db, " + pictures.size() + " found.");
 
         this.recycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         this.recycler.setAdapter(new BeerPictureAdapter(pictures, getActivity()));
     }
 
     @Subscribe
-    public void onEndPointAvailableResult(EndPointAvailableEvent event) {
-        if(event.isAvailable()) {
-            Log.e("LOG", "Endpoint available!");
-            new BeerLookupTask(getActivity(), beer).execute();
-
-        } else {
-            Log.e("LOG", "Endpoint not available.");
-        }
-    }
-
-    @Subscribe
     public void onBeerLookupResult(BeerLookupTaskEvent event) {
-        this.beer = event.getBeer();
-        Log.e("LOG", "Lookup result!");
-        loadText();
+        this.beer = event.getBeers().get(0);
+        loadData();
     }
 }

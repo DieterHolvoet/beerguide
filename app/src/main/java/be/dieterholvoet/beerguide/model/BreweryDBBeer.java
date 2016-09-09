@@ -1,60 +1,44 @@
 package be.dieterholvoet.beerguide.model;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
+import android.util.Log;
 
 import java.io.Serializable;
 
+import be.dieterholvoet.beerguide.helper.PrimaryKeyFactory;
 import be.dieterholvoet.beerguide.rest.model.BreweryDBResultBeer;
+import io.realm.Realm;
+import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
+import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 
 /**
  * Created by Dieter on 29/12/2015.
  */
 
-@Table(name = "BreweryDBBeers")
-public class BreweryDBBeer extends Model implements Serializable {
-    @Column(name = "BreweryDBID")
+public class BreweryDBBeer extends RealmObject implements Serializable {
+    @PrimaryKey
+    private long primaryKey;
+
     private String BreweryDBID;
-
-    @Column(name = "name")
     private String name;
-
-    @Column(name = "year")
     private String year;
-
-    @Column(name = "labels", onUpdate = Column.ForeignKeyAction.CASCADE, onDelete = Column.ForeignKeyAction.CASCADE)
-    BreweryDBLabel labels;
-
-    @Column(name = "style", onUpdate = Column.ForeignKeyAction.CASCADE)
-    BreweryDBStyle style;
-
-    @Column(name = "availability", onUpdate = Column.ForeignKeyAction.CASCADE, onDelete = Column.ForeignKeyAction.CASCADE)
-    BreweryDBAvailability availability;
-
-    @Column(name = "srm", onUpdate = Column.ForeignKeyAction.CASCADE, onDelete = Column.ForeignKeyAction.CASCADE)
-    BreweryDBSRM srm;
-
-    @Column(name = "brewery", onUpdate = Column.ForeignKeyAction.CASCADE)
-    BreweryDBBrewery brewery;
-
-    @Column(name = "abv")
-    String abv;
-
-    @Column(name = "ibu")
-    String ibu;
-
-    @Column(name = "og")
-    String og;
-
-    @Column(name = "description")
-    String description;
-
-    @Column(name = "Beer", onDelete = Column.ForeignKeyAction.CASCADE)
-    private Beer beer;
+    private BreweryDBLabel labels;
+    private BreweryDBStyle style;
+    private BreweryDBAvailability availability;
+    private BreweryDBSRM srm;
+    private BreweryDBBrewery brewery;
+    private String abv;
+    private String ibu;
+    private String og;
+    private String description;
 
     public BreweryDBBeer() {
         super();
+    }
+
+    public BreweryDBBeer(String BreweryDBID) {
+        super();
+        this.BreweryDBID = BreweryDBID;
     }
 
     public BreweryDBBeer(BreweryDBResultBeer result) {
@@ -174,11 +158,60 @@ public class BreweryDBBeer extends Model implements Serializable {
         this.description = description;
     }
 
-    public Beer getBeer() {
-        return beer;
+    public long getPrimaryKey() {
+        return primaryKey;
     }
 
-    public void setBeer(Beer beer) {
-        this.beer = beer;
+    public void setPrimaryKey(long primaryKey) {
+        this.primaryKey = primaryKey;
+    }
+
+    public BreweryDBBeer save(Realm realm) {
+        BreweryDBBeer newObj;
+        boolean inTransactionBefore = realm.isInTransaction();
+
+        try {
+            if(!inTransactionBefore) realm.beginTransaction();
+
+            if(this.labels != null) this.labels = this.labels.save(realm);
+            if(this.style != null) this.style = this.style.save(realm);
+            if(this.availability != null) this.availability = this.availability.save(realm);
+            if(this.srm != null) this.srm = this.srm.save(realm);
+            if(this.brewery != null) this.brewery = this.brewery.save(realm);
+
+            if(this.primaryKey == 0) throw new RealmPrimaryKeyConstraintException("");
+
+        } catch(RealmPrimaryKeyConstraintException e) {
+            this.primaryKey = PrimaryKeyFactory.getInstance().nextKey(this.getClass());
+
+        } finally {
+            newObj = realm.copyToRealm(this);
+            if(!inTransactionBefore) realm.commitTransaction();
+        }
+
+        return newObj;
+    }
+
+    public void delete(Realm realm) {
+        boolean inTransactionBefore = realm.isInTransaction();
+
+        try {
+            if(!inTransactionBefore) realm.beginTransaction();
+            if(this.primaryKey == 0) throw new Exception("Cannot delete: this is not a managed Realm object.");
+
+            if(this.labels != null) this.labels.delete(realm);
+            if(this.style != null) this.style.delete(realm);
+            if(this.availability != null) this.availability.delete(realm);
+            if(this.srm != null) this.srm.delete(realm);
+            if(this.brewery != null) this.brewery.delete(realm);
+
+        } catch(Exception e) {
+            Log.d("BEER", e.getMessage());
+            return;
+
+        } finally {
+            this.deleteFromRealm();
+            if(!inTransactionBefore) realm.commitTransaction();
+        }
     }
 }

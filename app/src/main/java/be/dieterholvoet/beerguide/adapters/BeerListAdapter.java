@@ -1,6 +1,7 @@
 package be.dieterholvoet.beerguide.adapters;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -13,8 +14,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RatingBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.RelativeLayout.LayoutParams;
 
 import com.squareup.picasso.Picasso;
 
@@ -26,29 +27,75 @@ import be.dieterholvoet.beerguide.db.BeerDAO;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.model.BreweryDBBeer;
 import be.dieterholvoet.beerguide.model.BreweryDBCategory;
+import io.realm.Realm;
+import io.realm.RealmBasedRecyclerViewAdapter;
+import io.realm.RealmResults;
+import io.realm.RealmViewHolder;
 
 /**
- * Created by Dieter on 8/01/2016.
+ * Created by Dieter on 7/09/2016.
  */
 
-public class BeerListAdapter extends RecyclerView.Adapter<BeerListAdapter.BeerListViewHolder> implements ItemTouchHelperAdapter {
+public class BeerListAdapter
+        extends RealmBasedRecyclerViewAdapter<Beer, BeerListAdapter.ViewHolder> {
 
-    private static List<Beer> beers;
-    private Activity activity;
+    private View rootView;
 
-    public BeerListAdapter(List<Beer> beers, Activity activity) {
-        this.beers = beers;
-        this.activity = activity;
+    public class ViewHolder extends RealmViewHolder implements View.OnClickListener {
+        protected TextView name;
+        protected TextView category;
+        protected ImageView img;
+        protected RatingBar rating;
+        protected Activity activity;
+
+        public ViewHolder(View v, Activity a) {
+            super(v);
+            v.setOnClickListener(this);
+            this.activity = a;
+            this.name =  (TextView) v.findViewById(R.id.item_beer_name);
+            this.category = (TextView)  v.findViewById(R.id.item_beer_category_text);
+            this.rating = (RatingBar)  v.findViewById(R.id.ratingbar_small);
+            this.img = (ImageView)  v.findViewById(R.id.item_beer_img);
+        }
+
+        @Override
+        public void onClick(View v) {
+            Log.e("LOG", "Click!");
+            Beer beer = realmResults.get(getAdapterPosition());
+            Intent intent = new Intent(activity, NewBeerActivity.class);
+            Bundle b = new Bundle();
+
+            b.putString("bdbID", beer.getBdb().getBreweryDBID());
+            b.putString("beerName", beer.getBdb().getName());
+            intent.putExtras(b);
+
+            activity.startActivity(intent);
+            activity.overridePendingTransition(R.anim.left_in, R.anim.left_out);
+        }
+    }
+
+    public BeerListAdapter(
+            Context context,
+            View rootView,
+            RealmResults<Beer> realmResults,
+            boolean automaticUpdate,
+            boolean animateResults) {
+        super(context, realmResults, automaticUpdate, animateResults);
+        this.rootView = rootView;
     }
 
     @Override
-    public int getItemCount() {
-        return beers.size();
+    public ViewHolder onCreateRealmViewHolder(ViewGroup viewGroup, int viewType) {
+        View v = LayoutInflater.
+                from(viewGroup.getContext()).
+                inflate(R.layout.item_beer, viewGroup, false);
+        return new ViewHolder(v, (Activity) getContext());
     }
 
     @Override
-    public void onBindViewHolder(final BeerListViewHolder ratingViewHolder, int i) {
-        Beer beer = beers.get(i);
+    public void onBindRealmViewHolder(final ViewHolder viewHolder, int position) {
+
+        Beer beer = realmResults.get(position);
         final BreweryDBBeer bdb;
         BreweryDBCategory category;
 
@@ -75,73 +122,59 @@ public class BeerListAdapter extends RecyclerView.Adapter<BeerListAdapter.BeerLi
         String cat = (category.getName() == null || "".equals(category.getName())) ? "unknown" : category.getName();
         float rating = beer.getRating().getRating();
 
-        ratingViewHolder.name.setText(name);
-        ratingViewHolder.category.setText(cat);
-        ratingViewHolder.rating.setRating(rating);
+        viewHolder.name.setText(name);
+        viewHolder.category.setText(cat);
+        viewHolder.rating.setRating(rating);
 
         if(bdb.getLabels()!= null) {
-            Picasso.with(activity)
+            Picasso.with(getContext())
                     .load(bdb.getLabels().getMedium())
                     .placeholder(R.drawable.beer_placeholder)
                     .resize(200, 267)
                     .centerCrop()
-                    .into(ratingViewHolder.img);
+                    .into(viewHolder.img);
         } else {
 
-            Picasso.with(activity)
+            Picasso.with(getContext())
                     .load(R.drawable.beer_placeholder)
                     .resize(200, 267)
                     .centerCrop()
-                    .into(ratingViewHolder.img);
+                    .into(viewHolder.img);
         }
 
-
-        Drawable starDrawable = ContextCompat.getDrawable(activity, R.drawable.star_small_full);
-        LayoutParams params = (LayoutParams) ratingViewHolder.rating.getLayoutParams();
+        Drawable starDrawable = ContextCompat.getDrawable(getContext(), R.drawable.star_small_full);
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) viewHolder.rating.getLayoutParams();
         params.height = starDrawable.getMinimumHeight();
-        ratingViewHolder.rating.setLayoutParams(params);
+        viewHolder.rating.setLayoutParams(params);
 
-        ratingViewHolder.name.post(new Runnable() {
+        viewHolder.name.post(new Runnable() {
             @Override
             public void run() {
-                if (ratingViewHolder.name.getLineCount() == 2 && ratingViewHolder.category.getLineCount() == 2) {
-                    ratingViewHolder.category.setMaxLines(1);
+                if (viewHolder.name.getLineCount() == 2 && viewHolder.category.getLineCount() == 2) {
+                    viewHolder.category.setMaxLines(1);
                 }
             }
         });
     }
 
     @Override
-    public BeerListAdapter.BeerListViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-        View v = LayoutInflater.
-                from(viewGroup.getContext()).
-                inflate(R.layout.item_beer, viewGroup, false);
+    public void onItemSwipedDismiss(final int position) {
+        final Beer beer = getAt(position);
+        final Snackbar snackbar = Snackbar.make(this.rootView, "Beer removed.", Snackbar.LENGTH_LONG);
 
-        return new BeerListViewHolder(v, activity);
-    }
-
-    @Override
-    public void onItemMove(int fromPosition, int toPosition) {
-    }
-
-    @Override
-    public void onItemDismiss(RecyclerView recycler, final int position) {
-        final BeerListAdapter adapter = (BeerListAdapter) recycler.getAdapter();
-        final RecyclerView.LayoutManager lm = recycler.getLayoutManager();
-        final Beer beer = adapter.getAt(position);
-
-        final Snackbar snackbar = Snackbar.make(recycler, "Beer removed.", Snackbar.LENGTH_LONG);
         snackbar.setCallback(new Snackbar.Callback() {
             @Override
             public void onDismissed(Snackbar snackbar, int event) {
-                adapter.removeAt(position);
-                BeerDAO.delete(beer);
+                Realm realm = Realm.getDefaultInstance();
+                BeerDAO.delete(realm, beer);
+                realm.close();
             }
         });
+
         snackbar.setAction("Undo", new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                adapter.notifyDataSetChanged();
+                notifyDataSetChanged();
                 snackbar.setCallback(null);
                 snackbar.dismiss();
             }
@@ -150,60 +183,28 @@ public class BeerListAdapter extends RecyclerView.Adapter<BeerListAdapter.BeerLi
         snackbar.show();
     }
 
-    public static class BeerListViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        protected TextView name;
-        protected TextView category;
-        protected ImageView img;
-        protected RatingBar rating;
-        protected Activity activity;
 
-        public BeerListViewHolder(View v, Activity a) {
-            super(v);
-            v.setOnClickListener(this);
-            this.activity = a;
-            this.name =  (TextView) v.findViewById(R.id.item_beer_name);
-            this.category = (TextView)  v.findViewById(R.id.item_beer_category_text);
-            this.rating = (RatingBar)  v.findViewById(R.id.ratingbar_small);
-            this.img = (ImageView)  v.findViewById(R.id.item_beer_img);
-        }
-
-        @Override
-        public void onClick(View v) {
-            Log.e("LOG", "Click!");
-            Beer beer = beers.get(getAdapterPosition());
-            Intent intent = new Intent(activity, NewBeerActivity.class);
-            Bundle b = new Bundle();
-
-            b.putString("bdbID", beer.getBdb().getBreweryDBID());
-            b.putString("beerName", beer.getBdb().getName());
-            intent.putExtras(b);
-
-            activity.startActivity(intent);
-            activity.overridePendingTransition(R.anim.left_in, R.anim.left_out);
-        }
-    }
 
     // Source: http://stackoverflow.com/a/26310638/2637528
     public void removeAt(int position) {
-        beers.remove(position);
+        Realm realm = Realm.getDefaultInstance();
+        realm.beginTransaction();
+        realmResults.get(position).deleteFromRealm();
+        realm.commitTransaction();
+
         notifyItemRemoved(position);
-        notifyItemRangeChanged(position, beers.size());
+        notifyItemRangeChanged(position, realmResults.size());
+
+        realm.close();
     }
 
     public Beer getAt(int position) {
-        if(beers.size() > 0) {
-            return beers.get(position);
+        if(realmResults.size() > 0) {
+            return realmResults.get(position);
 
         } else {
             Log.e("LOG", "Can't get beer from empty list");
             return null;
         }
     }
-
-    public void setAt(int position, Beer beer) {
-        beers.add(position, beer);
-        notifyItemChanged(position);
-        notifyItemRangeChanged(position, beers.size());
-    }
 }
-
