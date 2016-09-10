@@ -7,7 +7,6 @@ import java.io.Serializable;
 import java.util.Calendar;
 import java.util.List;
 
-import be.dieterholvoet.beerguide.helper.ImageStore;
 import be.dieterholvoet.beerguide.helper.PrimaryKeyFactory;
 import be.dieterholvoet.beerguide.helper.RealmCascadedActions;
 import io.realm.Realm;
@@ -83,10 +82,6 @@ public class Beer extends RealmObject implements Serializable, RealmCascadedActi
 
     public void setNotes(String notes) {
         this.notes = notes;
-    }
-
-    public void addPicture(Uri uri) {
-        addPicture(new ImageStore(uri.toString()));
     }
 
     public void addPicture(ImageStore image) {

@@ -1,17 +1,8 @@
 package be.dieterholvoet.beerguide;
 
-import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.net.Uri;
-import android.os.ParcelFileDescriptor;
-import android.provider.MediaStore;
+import android.content.pm.PackageManager;
 import android.support.design.widget.TabLayout;
-import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,17 +10,9 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
-import android.view.WindowManager;
-import android.widget.Button;
 
-import com.squareup.otto.Subscribe;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileDescriptor;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import be.dieterholvoet.beerguide.adapters.BeerPictureAdapter;
 import be.dieterholvoet.beerguide.adapters.ViewPagerAdapter;
@@ -40,22 +23,26 @@ import be.dieterholvoet.beerguide.fragments.NewBeerAppearanceFragment;
 import be.dieterholvoet.beerguide.fragments.NewBeerInfoFragment;
 import be.dieterholvoet.beerguide.fragments.NewBeerRatingFragment;
 import be.dieterholvoet.beerguide.fragments.NewBeerTasteFragment;
-import be.dieterholvoet.beerguide.helper.ImageStore;
+import be.dieterholvoet.beerguide.helper.ImageHelper;
+import be.dieterholvoet.beerguide.model.ImageStore;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.model.BreweryDBBeer;
-import be.dieterholvoet.beerguide.rest.BreweryDB;
 import be.dieterholvoet.beerguide.tasks.BeerLookupTask;
 import io.realm.Realm;
 
 public class NewBeerActivity extends AppCompatActivity {
+    private final int REQUEST_CAMERA_PERMISSION = 884;
+    private final int REQUEST_IMAGE_CAPTURE = 1;
     private final String SAVEDINSTANCESTATE_KEY = "currentBeer";
     private final String LOG = "NewBeerActivity";
+
     private Toolbar toolbar;
     private TabLayout tabLayout;
     private ViewPager viewPager;
     private ViewPagerAdapter adapter;
 
     private Beer beer = new Beer();
+    private ImageStore tempImage;
     private Realm realm;
 
     @Override
@@ -156,14 +143,6 @@ public class NewBeerActivity extends AppCompatActivity {
         outState.putString("bdbID", beer.getBdb().getBreweryDBID());
     }
 
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == ImageStore.REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            BeerDAO.savePictures(realm, beer);
-
-            ((RecyclerView) findViewById(R.id.beer_info_photo_list)).setAdapter(new BeerPictureAdapter(beer.getPictures(), this));
-        }
-    }
-
     private void initializeViewPager() {
         this.viewPager = (ViewPager) findViewById(R.id.new_beer_viewpager);
         this.adapter = new ViewPagerAdapter(getSupportFragmentManager());
@@ -202,5 +181,41 @@ public class NewBeerActivity extends AppCompatActivity {
 
     public void setBeer(Beer beer) {
         this.beer = beer;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CAMERA_PERMISSION: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    this.tempImage = ImageHelper.takePicture(this, REQUEST_IMAGE_CAPTURE);
+
+                } else {
+                    NewBeerInfoFragment fragment = (NewBeerInfoFragment) adapter.getItem(0);
+                    fragment.getFAB().collapse();
+                }
+            }
+        }
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            if(this.tempImage != null) {
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        beer.addPicture(tempImage);
+                    }
+                });
+
+                ImageHelper.addToGallery(this, this.tempImage.getUri());
+                this.tempImage = null;
+
+            } else {
+                Log.e(LOG, "tempImage is null");
+            }
+
+            ((RecyclerView) findViewById(R.id.beer_info_photo_list)).setAdapter(new BeerPictureAdapter(beer.getPictures(), this));
+        }
     }
 }

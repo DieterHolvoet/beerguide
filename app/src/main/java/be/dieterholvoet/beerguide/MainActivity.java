@@ -1,12 +1,17 @@
 package be.dieterholvoet.beerguide;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.MatrixCursor;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.SearchView;
@@ -33,6 +38,7 @@ import be.dieterholvoet.beerguide.fragments.BeersFavoritesFragment;
 import be.dieterholvoet.beerguide.fragments.BeersMoreFragment;
 import be.dieterholvoet.beerguide.fragments.BeersRecyclerFragment;
 import be.dieterholvoet.beerguide.helper.BeersRecyclerFragmentType;
+import be.dieterholvoet.beerguide.helper.PermissionsHelper;
 import be.dieterholvoet.beerguide.listeners.SearchSuggestionListener;
 import be.dieterholvoet.beerguide.listeners.SearchTextListener;
 import be.dieterholvoet.beerguide.rest.BreweryDB;
@@ -54,10 +60,15 @@ public class MainActivity extends AppCompatActivity {
     private Realm realm;
     private boolean firstLoadDone = false;
 
+    private static final int PERMISSIONS_REQUEST_INTERNET = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Request permissions
+        PermissionsHelper.requestPermission(this, Manifest.permission.INTERNET, PERMISSIONS_REQUEST_INTERNET);
 
         // Subscribe to events
         EventBus.getInstance().register(this);
@@ -125,6 +136,27 @@ public class MainActivity extends AppCompatActivity {
         EditText searchEditText = (EditText) searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
         searchEditText.setTextColor(getResources().getColor(R.color.colorPrimary));
         searchEditText.setHintTextColor(getResources().getColor(R.color.colorPrimary));
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_INTERNET: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+        }
     }
 
     private void initializeViewPager() {

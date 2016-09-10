@@ -11,7 +11,8 @@ import android.widget.ImageView;
 import java.util.List;
 
 import be.dieterholvoet.beerguide.R;
-import be.dieterholvoet.beerguide.helper.ImageStore;
+import be.dieterholvoet.beerguide.helper.ImageHelper;
+import be.dieterholvoet.beerguide.model.ImageStore;
 
 /**
  * Created by Dieter on 5/02/2016.
@@ -35,13 +36,7 @@ public class BeerPictureAdapter extends RecyclerView.Adapter<BeerPictureAdapter.
     @Override
     public void onBindViewHolder(final BeerPictureViewHolder viewHolder, int i) {
         ImageStore picture = pictures.get(i);
-
-        /*if(picture.getContext() == null) {
-            picture = new ImageStore(this.activity, picture.getPath());
-            pictures.set(i, picture);
-        }*/
-
-        picture.loadInView(activity, viewHolder.img, 100, 150);
+        ImageHelper.loadInView(activity, viewHolder.img, 100, 150, picture.getUri());
     }
 
     @Override
@@ -66,7 +61,9 @@ public class BeerPictureAdapter extends RecyclerView.Adapter<BeerPictureAdapter.
 
         @Override
         public void onClick(View v) {
-            (pictures.get(getAdapterPosition())).openInGallery(activity);
+            int pos = getAdapterPosition();
+            ImageStore image = pictures.get(pos);
+            ImageHelper.openInGallery(activity, image.getUri());
         }
     }
 

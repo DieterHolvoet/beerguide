@@ -166,7 +166,7 @@ public class BeerListAdapter
             @Override
             public void onDismissed(Snackbar snackbar, int event) {
                 Realm realm = Realm.getDefaultInstance();
-                BeerDAO.delete(realm, beer);
+                beer.delete(realm);
                 realm.close();
             }
         });
@@ -182,8 +182,6 @@ public class BeerListAdapter
 
         snackbar.show();
     }
-
-
 
     // Source: http://stackoverflow.com/a/26310638/2637528
     public void removeAt(int position) {

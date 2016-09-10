@@ -1,5 +1,6 @@
 package be.dieterholvoet.beerguide.fragments;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -28,7 +29,9 @@ import be.dieterholvoet.beerguide.adapters.BeerPictureAdapter;
 import be.dieterholvoet.beerguide.bus.BeerLookupTaskEvent;
 import be.dieterholvoet.beerguide.bus.EventBus;
 import be.dieterholvoet.beerguide.helper.Helper;
-import be.dieterholvoet.beerguide.helper.ImageStore;
+import be.dieterholvoet.beerguide.helper.ImageHelper;
+import be.dieterholvoet.beerguide.helper.PermissionsHelper;
+import be.dieterholvoet.beerguide.model.ImageStore;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.model.BreweryDBBeer;
 
@@ -37,12 +40,13 @@ import be.dieterholvoet.beerguide.model.BreweryDBBeer;
  */
 
 public class NewBeerInfoFragment extends Fragment {
+    private final int REQUEST_CAMERA_PERMISSION = 884;
+
     NewBeerActivity activity;
-    PackageManager pm;
     View view;
     Beer beer;
 
-    FloatingActionsMenu menuMultipleActions;
+    FloatingActionsMenu FAB;
     FloatingActionButton cameraFAB;
     FloatingActionButton galleryFAB;
 
@@ -79,7 +83,6 @@ public class NewBeerInfoFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         this.view = inflater.inflate(R.layout.fragment_new_beer_info, null);
-        this.pm = getContext().getPackageManager();
 
         this.name = (TextView) view.findViewById(R.id.beer_info_name);
         this.abv = (TextView) view.findViewById(R.id.beer_info_abv_value);
@@ -165,7 +168,7 @@ public class NewBeerInfoFragment extends Fragment {
 
     private void initializeFAB() {
 
-        if(this.pm.hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+        if(ImageHelper.hasCamera(getContext())) {
             this.cameraFAB = new FloatingActionButton(getContext());
             this.cameraFAB.setImageResource(R.drawable.camera);
             this.cameraFAB.setColorNormalResId(R.color.colorPrimary);
@@ -175,13 +178,9 @@ public class NewBeerInfoFragment extends Fragment {
                 @Override
                 public void onClick(View v) {
                     if (Helper.isExternalStoragePresent()) {
-                        ImageStore image = new ImageStore();
-
-                        Uri uri = image.dispatchTakePictureIntent(activity);
-                        if(uri != null) beer.addPicture(uri);
-
-                        activity.setBeer(beer);
-                        image.addToGallery(activity);
+                        PermissionsHelper.requestPermissions(getActivity(),
+                                new String[]{ Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE },
+                                REQUEST_CAMERA_PERMISSION);
 
                     } else {
                         Toast.makeText(getContext(), "External storage not available.", Toast.LENGTH_LONG).show();
@@ -202,25 +201,24 @@ public class NewBeerInfoFragment extends Fragment {
             }
         });
 
-        this.menuMultipleActions = (FloatingActionsMenu) view.findViewById(R.id.beer_info_fab_menu);
-        this.menuMultipleActions.addButton(cameraFAB);
-        this.menuMultipleActions.addButton(galleryFAB);
+        this.FAB = (FloatingActionsMenu) view.findViewById(R.id.beer_info_fab_menu);
+        this.FAB.addButton(cameraFAB);
+        this.FAB.addButton(galleryFAB);
     }
 
     private void initializeRecyclerView() {
         this.recycler = (RecyclerView) view.findViewById(R.id.beer_info_photo_list);
-        List<ImageStore> pictures;
-
-        pictures = this.beer.getPictures();
-        Log.e("LOG", "Getting pictures from db, " + pictures.size() + " found.");
-
         this.recycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        this.recycler.setAdapter(new BeerPictureAdapter(pictures, getActivity()));
+        this.recycler.setAdapter(new BeerPictureAdapter(this.beer.getPictures(), getActivity()));
     }
 
     @Subscribe
     public void onBeerLookupResult(BeerLookupTaskEvent event) {
         this.beer = event.getBeers().get(0);
         loadData();
+    }
+
+    public FloatingActionsMenu getFAB() {
+        return FAB;
     }
 }
