@@ -31,9 +31,6 @@ import be.dieterholvoet.beerguide.tasks.BeerLookupTask;
 import io.realm.Realm;
 
 public class NewBeerActivity extends AppCompatActivity {
-    private final int REQUEST_CAMERA_PERMISSION = 884;
-    private final int REQUEST_IMAGE_CAPTURE = 1;
-    private final String SAVEDINSTANCESTATE_KEY = "currentBeer";
     private final String LOG = "NewBeerActivity";
 
     private Toolbar toolbar;
@@ -42,7 +39,6 @@ public class NewBeerActivity extends AppCompatActivity {
     private ViewPagerAdapter adapter;
 
     private Beer beer = new Beer();
-    private ImageStore tempImage;
     private Realm realm;
 
     @Override
@@ -183,39 +179,8 @@ public class NewBeerActivity extends AppCompatActivity {
         this.beer = beer;
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case REQUEST_CAMERA_PERMISSION: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    this.tempImage = ImageHelper.takePicture(this, REQUEST_IMAGE_CAPTURE);
-
-                } else {
-                    NewBeerInfoFragment fragment = (NewBeerInfoFragment) adapter.getItem(0);
-                    fragment.getFAB().collapse();
-                }
-            }
-        }
-    }
-
+    // Propagate to Fragment
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            if(this.tempImage != null) {
-                realm.executeTransaction(new Realm.Transaction() {
-                    @Override
-                    public void execute(Realm realm) {
-                        beer.addPicture(tempImage);
-                    }
-                });
-
-                ImageHelper.addToGallery(this, this.tempImage.getUri());
-                this.tempImage = null;
-
-            } else {
-                Log.e(LOG, "tempImage is null");
-            }
-
-            ((RecyclerView) findViewById(R.id.beer_info_photo_list)).setAdapter(new BeerPictureAdapter(beer.getPictures(), this));
-        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }

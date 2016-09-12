@@ -2,6 +2,7 @@ package be.dieterholvoet.beerguide.fragments;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,9 +19,14 @@ import android.widget.Toast;
 
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.getbase.floatingactionbutton.FloatingActionButton;
+import com.github.jksiezni.permissive.PermissionsGrantedListener;
+import com.github.jksiezni.permissive.PermissionsRefusedListener;
+import com.github.jksiezni.permissive.Permissive;
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import be.dieterholvoet.beerguide.NewBeerActivity;
@@ -28,12 +34,16 @@ import be.dieterholvoet.beerguide.R;
 import be.dieterholvoet.beerguide.adapters.BeerPictureAdapter;
 import be.dieterholvoet.beerguide.bus.BeerLookupTaskEvent;
 import be.dieterholvoet.beerguide.bus.EventBus;
+import be.dieterholvoet.beerguide.helper.FileHelper;
 import be.dieterholvoet.beerguide.helper.Helper;
 import be.dieterholvoet.beerguide.helper.ImageHelper;
 import be.dieterholvoet.beerguide.helper.PermissionsHelper;
 import be.dieterholvoet.beerguide.model.ImageStore;
 import be.dieterholvoet.beerguide.model.Beer;
 import be.dieterholvoet.beerguide.model.BreweryDBBeer;
+import io.realm.Realm;
+
+import static android.app.Activity.RESULT_OK;
 
 /**
  * Created by Dieter on 26/12/2015.
@@ -41,10 +51,16 @@ import be.dieterholvoet.beerguide.model.BreweryDBBeer;
 
 public class NewBeerInfoFragment extends Fragment {
     private final int REQUEST_CAMERA_PERMISSION = 884;
+    private final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final int REQUEST_GALLERY_IMAGE = 750;
+
+    private final String LOG = "NewBeerInfoFragment";
 
     NewBeerActivity activity;
     View view;
     Beer beer;
+    ImageStore tempImage;
+    Realm realm;
 
     FloatingActionsMenu FAB;
     FloatingActionButton cameraFAB;
@@ -66,12 +82,21 @@ public class NewBeerInfoFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
+        realm = Realm.getDefaultInstance();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        realm.close();
+        realm = null;
     }
 
     @Override
     public void onStart() {
         super.onStart();
         EventBus.getInstance().register(this);
+        checkIfPicturesExist();
     }
 
     @Override
@@ -99,6 +124,7 @@ public class NewBeerInfoFragment extends Fragment {
         this.beer = activity.getBeer();
 
         initializeFAB();
+        checkIfPicturesExist();
         initializeRecyclerView();
         loadData();
 
@@ -113,6 +139,22 @@ public class NewBeerInfoFragment extends Fragment {
         }
 
         return this.view;
+    }
+
+    private void checkIfPicturesExist() {
+        for(int i = 0; i < beer.getPictures().size(); i++) {
+            ImageStore picture = beer.getPictures().get(i);
+            final int pos = i;
+
+            if(!picture.getFile().exists()) {
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        beer.getPictures().remove(pos);
+                    }
+                });
+            }
+        }
     }
 
     @Override
@@ -178,9 +220,20 @@ public class NewBeerInfoFragment extends Fragment {
                 @Override
                 public void onClick(View v) {
                     if (Helper.isExternalStoragePresent()) {
-                        PermissionsHelper.requestPermissions(getActivity(),
-                                new String[]{ Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE },
-                                REQUEST_CAMERA_PERMISSION);
+                        new Permissive.Request(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                .whenPermissionsGranted(new PermissionsGrantedListener() {
+                                    @Override
+                                    public void onPermissionsGranted(String[] permissions) throws SecurityException {
+                                        NewBeerInfoFragment.this.tempImage = ImageHelper.takePicture(getActivity(), REQUEST_IMAGE_CAPTURE, NewBeerInfoFragment.this);
+                                    }
+                                })
+                                .whenPermissionsRefused(new PermissionsRefusedListener() {
+                                    @Override
+                                    public void onPermissionsRefused(String[] permissions) {
+                                        NewBeerInfoFragment.this.FAB.collapse();
+                                    }
+                                })
+                                .execute(getActivity());
 
                     } else {
                         Toast.makeText(getContext(), "External storage not available.", Toast.LENGTH_LONG).show();
@@ -197,7 +250,20 @@ public class NewBeerInfoFragment extends Fragment {
         this.galleryFAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getContext(), "Gallery FAB", Toast.LENGTH_SHORT).show();
+                new Permissive.Request(Manifest.permission.READ_EXTERNAL_STORAGE)
+                        .whenPermissionsGranted(new PermissionsGrantedListener() {
+                            @Override
+                            public void onPermissionsGranted(String[] permissions) throws SecurityException {
+                                ImageHelper.pickFromGallery(NewBeerInfoFragment.this, REQUEST_GALLERY_IMAGE);
+                            }
+                        })
+                        .whenPermissionsRefused(new PermissionsRefusedListener() {
+                            @Override
+                            public void onPermissionsRefused(String[] permissions) {
+                                NewBeerInfoFragment.this.FAB.collapse();
+                            }
+                        })
+                        .execute(getActivity());
             }
         });
 
@@ -220,5 +286,59 @@ public class NewBeerInfoFragment extends Fragment {
 
     public FloatingActionsMenu getFAB() {
         return FAB;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(resultCode == RESULT_OK) {
+            switch(requestCode) {
+
+                case REQUEST_IMAGE_CAPTURE:
+                    if(this.tempImage != null) {
+                        realm.executeTransaction(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                beer.addPicture(tempImage);
+                            }
+                        });
+
+                        ImageHelper.addToGallery(getActivity(), this.tempImage.getUri());
+                        this.tempImage = null;
+                        this.recycler.setAdapter(new BeerPictureAdapter(beer.getPictures(), getActivity()));
+                        this.FAB.collapse();
+
+                    } else {
+                        Log.e(LOG, "tempImage is null");
+                    }
+
+                    break;
+
+                case REQUEST_GALLERY_IMAGE:
+                    String path = FileHelper.getPath(getContext(), data.getData());
+                    String extension = path.substring(path.lastIndexOf(".") + 1);
+                    this.tempImage = new ImageStore(extension);
+
+                    try {
+                        FileHelper.copyFile(new File(path), this.tempImage.getFile());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    realm.executeTransaction(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm realm) {
+                            beer.addPicture(NewBeerInfoFragment.this.tempImage);
+                        }
+                    });
+
+                    ImageHelper.addToGallery(getActivity(), this.tempImage.getUri());
+                    this.tempImage = null;
+                    this.recycler.setAdapter(new BeerPictureAdapter(beer.getPictures(), getActivity()));
+                    int length = beer.getPictures().size();
+                    this.FAB.collapse();
+
+                    break;
+            }
+        }
     }
 }

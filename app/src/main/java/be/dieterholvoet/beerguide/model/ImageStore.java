@@ -5,6 +5,8 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import be.dieterholvoet.beerguide.helper.ImageHelper;
 import be.dieterholvoet.beerguide.helper.PrimaryKeyFactory;
@@ -23,13 +25,23 @@ public class ImageStore extends RealmObject implements Serializable {
     @PrimaryKey
     private long primaryKey;
     private String filename;
-    private String timestamp;
+    private String filetype;
+    private long timestamp;
 
     public ImageStore() {}
 
-    public ImageStore(String filename, String timestamp) {
-        this.filename = filename;
+    public ImageStore(String filetype, long timestamp) {
+        this.filetype = filetype;
         this.timestamp = timestamp;
+
+        generateFilename();
+    }
+
+    public ImageStore(String filetype) {
+        this.filetype = filetype;
+
+        generateTimestamp();
+        generateFilename();
     }
 
     public String getFilename() {
@@ -40,12 +52,20 @@ public class ImageStore extends RealmObject implements Serializable {
         this.filename = filename;
     }
 
-    public String getTimestamp() {
+    public long getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(String timestamp) {
+    public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public String getFiletype() {
+        return filetype;
+    }
+
+    public void setFiletype(String filetype) {
+        this.filetype = filetype;
     }
 
     public long getPrimaryKey() {
@@ -61,7 +81,7 @@ public class ImageStore extends RealmObject implements Serializable {
      */
 
     public String getFullPath() {
-        return ImageHelper.getStorageDirectory() + File.separator + ImageHelper.getFolderName() + File.separator + filename + ".jpg";
+        return ImageHelper.getStorageDirectory() + File.separator + ImageHelper.getFolderName() + File.separator + filename + "." + filetype;
     }
 
     public File getFile() {
@@ -70,6 +90,14 @@ public class ImageStore extends RealmObject implements Serializable {
 
     public Uri getUri() {
         return Uri.fromFile(getFile());
+    }
+
+    public long generateTimestamp() {
+        return this.timestamp = System.currentTimeMillis() / 1000;
+    }
+
+    public String generateFilename() {
+        return this.filename = "BEER_" + new SimpleDateFormat("yyyyMMdd_HHmmss").format(timestamp);
     }
 
     /*

@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 
 import com.facebook.stetho.Stetho;
+import com.squareup.leakcanary.LeakCanary;
 import com.uphyca.stetho_realm.RealmInspectorModulesProvider;
 
 import be.dieterholvoet.beerguide.helper.PrimaryKeyFactory;
@@ -19,13 +20,8 @@ public class BeerGuide extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-
-        Stetho.initialize(
-                Stetho.newInitializerBuilder(this)
-                        .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
-                        .enableWebKitInspector(RealmInspectorModulesProvider.builder(this).build())
-                        .build());
         initRealm();
+        LeakCanary.install(this);
     }
 
     protected void initRealm() {
