@@ -271,7 +271,7 @@ public class BreweryDB {
     }
 
     public static boolean isNetworkAvailable(Context c) {
-        ConnectivityManager connectivityManager = (ConnectivityManager) c.getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager connectivityManager = (ConnectivityManager) c.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         boolean networkAvailable = activeNetworkInfo != null && activeNetworkInfo.isConnected();
 
